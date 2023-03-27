@@ -1,7 +1,7 @@
 #!/bin/sh
 
 today=$(date +%y.%m.%d)
-tagFormat="${today}-"
+tagFormat="pupuri-${today}-"
 
 git fetch --all --tags
 tagCount=$(git tag -l | grep -c $tagFormat)

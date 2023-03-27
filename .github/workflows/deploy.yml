@@ -3,7 +3,7 @@ name: deploy-dev
 on:
   push:
     tags:
-      - dev-*
+      - pupuri-*
 
 jobs:
   deploy:
