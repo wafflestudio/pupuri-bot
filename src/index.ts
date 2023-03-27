@@ -1,13 +1,14 @@
-import express, { NextFunction, Request, Response } from "express";
+import express from "express";
 
 const PORT = 3000;
 
 const app = express();
 
-app.get("/ping", (req: Request, res: Response, next: NextFunction) => {
-  res.send("pong");
+app.use(express.json());
+
+app.post("/slack/action-endpoint", (req, res, ctx) => {
+  console.log(req.body);
+  res.status(200).send(req.body.challenge);
 });
 
-app.listen(PORT, () => {
-  console.log(`Server listening on port: ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
