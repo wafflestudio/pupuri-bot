@@ -13,7 +13,7 @@ jobs:
       IMAGE_TAG: ${{ github.run_number }}
       BUILD_NUMBER: ${{ github.run_number }}
       ECR_REGISTRY: 405906814034.dkr.ecr.ap-northeast-2.amazonaws.com
-      ECR_REPOSITORY: pupuri/pupuri-bot
+      ECR_REPOSITORY: pupuri-prod/pupuri-bot
 
     steps:
       - name: Checkout
