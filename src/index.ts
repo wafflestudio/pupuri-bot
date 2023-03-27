@@ -1,13 +1,21 @@
-import express, { NextFunction, Request, Response } from "express";
+import { App } from "@slack/bolt";
 
 const PORT = 3000;
 
-const app = express();
-
-app.get("/ping", (req: Request, res: Response, next: NextFunction) => {
-  res.send("pong");
+const app = new App({
+  signingSecret: process.env.SLACK_SIGNING_SECRET,
+  token: process.env.SLACK_BOT_TOKEN,
 });
 
-app.listen(PORT, () => {
-  console.log(`Server listening on port: ${PORT}`);
+/* Add functionality here */
+
+app.event("channel_rename", async (event) => {
+  console.log(event);
 });
+
+(async () => {
+  // Start the app
+  await app.start(PORT);
+
+  console.log("⚡️ Bolt app is running!");
+})();
