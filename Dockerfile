@@ -1,10 +1,7 @@
-FROM node:8.15-alpine
-WORKDIR /app
-RUN apk add g++ make python
-COPY package*.json ./
-RUN npm install
+FROM node:18.11.0-alpine
 COPY . .
-RUN npm run-script build
-CMD ["npm", "start"]
+RUN yarn install
+RUN yarn build
+CMD ["yarn", "start"]
 
 EXPOSE 3000
