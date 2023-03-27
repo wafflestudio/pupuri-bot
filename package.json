@@ -1,0 +1,10 @@
+{
+  "name": "pupuri-bot",
+  "version": "0.0.1",
+  "description": "wafflestudio pupuri bot",
+  "main": "index.ts",
+  "repository": "https://github.com/wafflestudio/pupuri-bot",
+  "author": "woohm402 <woohm404@gmail.com>",
+  "license": "MIT",
+  "private": false
+}
