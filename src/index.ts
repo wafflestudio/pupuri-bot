@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import express from "express";
+import { handleSlackEvent } from "./slack";
 
 dotenv.config({ path: ".env.local" });
 
@@ -16,19 +17,16 @@ app.post("/slack/action-endpoint", express.json(), (req, res) => {
   if (req.body.type === "url_verification") return res.send(req.body.challenge);
 
   // Handle other events
-  if (req.body.event.type === "channel_rename") {
+  handleSlackEvent(req.body.event.type, req.body.event.channel, (text) => {
     fetch("https://slack.com/api/chat.postMessage", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${slackAuthToken}`,
       },
-      body: JSON.stringify({
-        channel: slackWatcherChannerId,
-        text: `<#${req.body.event.channel.id}> has renamed.`,
-      }),
+      body: JSON.stringify({ channel: slackWatcherChannerId, text }),
     });
-  }
+  });
 
   res.sendStatus(200);
 });
