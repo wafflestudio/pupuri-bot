@@ -27,7 +27,10 @@ app.post("/slack/action-endpoint", express.json(), (req, res) => {
         channel: slackWatcherChannerId,
         text: `<#${req.body.event.channel.id}> has renamed.`,
       }),
-    });
+    })
+      .then((res) => res.json())
+      .then(console.log)
+      .catch(console.log);
   }
 
   res.sendStatus(200);
