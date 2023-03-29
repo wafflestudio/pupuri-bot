@@ -5,8 +5,10 @@ import { handleSlackEvent } from "./slack";
 dotenv.config({ path: ".env.local" });
 
 const slackBotToken = process.env.SLACK_BOT_TOKEN;
-const slackWatcherChannerId = process.env.SLACK_WATCHER_CHANNEL_ID;
+const slackWatcherChannelId = process.env.SLACK_WATCHER_CHANNEL_ID;
+const slackTestChannelId = process.env.SLACK_TEST_CHANNEL_ID;
 const slackAuthToken = process.env.SLACK_AUTH_TOKEN;
+
 const PORT = 3000;
 const app = express();
 
@@ -17,14 +19,14 @@ app.post("/slack/action-endpoint", express.json(), (req, res) => {
   if (req.body.type === "url_verification") return res.send(req.body.challenge);
 
   // Handle other events
-  handleSlackEvent(req.body.event.type, req.body.event.channel, (text) => {
+  handleSlackEvent(req.body.event, (text) => {
     fetch("https://slack.com/api/chat.postMessage", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${slackAuthToken}`,
       },
-      body: JSON.stringify({ channel: slackWatcherChannerId, text }),
+      body: JSON.stringify({ channel: slackWatcherChannelId, text }),
     });
   });
 

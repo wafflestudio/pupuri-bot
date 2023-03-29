@@ -1,20 +1,17 @@
 export const handleSlackEvent = async (
-  type: string,
-  channel: { id: string },
+  event: { type: string; channel: { id: string } },
   sendMessage: (text: string) => void
 ) => {
-  switch (type) {
+  const channelId = event.channel.id;
+  switch (event.type) {
     case "channel_created":
-      sendMessage(`<#${channel.id}> has created.`);
-      break;
-    case "channel_rename":
-      sendMessage(`<#${channel.id}> has renamed.`);
+      sendMessage(`<#${channelId}> 채널이 생성되었어요`);
       break;
     case "channel_archive":
-      sendMessage(`<#${channel.id}> has archived.`);
+      sendMessage(`<#${channelId}> 채널이 보관되었어요`);
       break;
     case "channel_unarchive":
-      sendMessage(`<#${channel.id}> has unarchived.`);
+      sendMessage(`<#${channelId}> 채널이 보관 해제되었어요`);
       break;
   }
 };
