@@ -18,6 +18,8 @@ app.post("/slack/action-endpoint", express.json(), (req, res) => {
   // Slack event subscription verification
   if (req.body.type === "url_verification") return res.send(req.body.challenge);
 
+  logEvent(req.body.event);
+
   // Handle other events
   handleSlackEvent(req.body.event, (text) => {
     fetch("https://slack.com/api/chat.postMessage", {
@@ -35,3 +37,9 @@ app.post("/slack/action-endpoint", express.json(), (req, res) => {
 
 // Start the server
 app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
+
+function logEvent(event: unknown) {
+  console.log("=-=-=-=-=-=-=-=-=-=");
+  console.log(event);
+  console.log("=-=-=-=-=-=-=-=-=-=");
+}
