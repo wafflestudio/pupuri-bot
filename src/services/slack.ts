@@ -1,7 +1,6 @@
-import { SlackClient } from '../clients/slack';
-import { Commit, Repository } from '../entities/github';
-import { GithubService } from './github';
-import { LogService } from './log';
+import { type SlackClient } from '../clients/slack';
+import { type GithubService } from './github';
+import { type LogService } from './log';
 
 export type SlackService = {
   handleVerification: (body: { challenge: string }) => string;
