@@ -1,5 +1,6 @@
-import { SlackService } from '../services/slack';
-import { Request, Response } from 'express';
+import { type Request, type Response } from 'express';
+
+import { type SlackService } from '../services/slack';
 
 export type SlackController = { handleEventRequest: (req: Request, res: Response) => void };
 

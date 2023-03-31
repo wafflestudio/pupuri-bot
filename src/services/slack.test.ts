@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { getSlackService, SlackService } from './slack';
-import { SlackClient } from '../clients/slack';
-import { LogService } from './log';
-import { GithubService } from './github';
+
+import { type SlackClient } from '../clients/slack';
+import { type GithubService } from './github';
+import { type LogService } from './log';
+import { getSlackService, type SlackService } from './slack';
 
 describe('SlackService', () => {
   let slackService: SlackService;

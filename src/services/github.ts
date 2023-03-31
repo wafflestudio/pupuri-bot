@@ -1,5 +1,5 @@
-import { Commit, Repository } from '../entities/github';
-import { GithubRepository } from '../repositories/github';
+import { type Commit, type Repository } from '../entities/github';
+import { type GithubRepository } from '../repositories/github';
 
 export type GithubService = {
   getTopRepositoriesLastWeek: (organization: string) => Promise<{ repository: Repository; commits: Commit[] }[]>;
