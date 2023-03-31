@@ -1,4 +1,5 @@
-import { type SlackClient } from '../clients/slack';
+import { type SlackClient } from '@/clients/slack';
+
 import { type GithubService } from './github';
 import { type LogService } from './log';
 
