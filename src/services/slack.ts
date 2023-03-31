@@ -1,13 +1,19 @@
 import { SlackClient } from '../clients/slack';
+import { Commit, Repository } from '../entities/github';
+import { GithubService } from './github';
 import { LogService } from './log';
 
 export type SlackService = {
   handleVerification: (body: { challenge: string }) => string;
   handleEvent: (event: SlackEvent) => void;
+  sendGithubTopRepositoriesLastWeek: () => void;
 };
 
-type Deps = { clients: [SlackClient]; services: [LogService] };
-export const getSlackService = ({ clients: [slackClient], services: [logService] }: Deps): SlackService => {
+type Deps = { clients: [SlackClient]; services: [LogService, GithubService] };
+export const getSlackService = ({
+  clients: [slackClient],
+  services: [logService, githubService],
+}: Deps): SlackService => {
   return {
     handleVerification: (body) => body.challenge,
     handleEvent: (event) => {
@@ -28,8 +34,24 @@ export const getSlackService = ({ clients: [slackClient], services: [logService]
           break;
       }
     },
+    sendGithubTopRepositoriesLastWeek: async () => {
+      const data = await githubService.getTopRepositoriesLastWeek('wafflestudio');
+      const divider = '---------------------------------------------';
+      const title = `*:github: Top 5 Repositories Last Week* :blob-clap:`;
+      const repositories = data
+        .filter(({ commits }) => commits.length > 0)
+        .slice(0, 5)
+        .map(
+          ({ repository: { url, name }, commits: { length } }, i) =>
+            `${rankEmojis[i]} <${url}|*${name}*> (${length} commits)`,
+        )
+        .join('\n\n');
+      slackClient.sendMessage('active', [divider, title, divider, repositories].join('\n'));
+    },
   };
 };
+
+const rankEmojis = [':first_place_medal:', ':second_place_medal:', ':third_place_medal:', ':four:', ':five:'];
 
 type ChannelId = string;
 type UserId = string;
