@@ -19,15 +19,12 @@ const slackActiveChannelId = process.env.SLACK_ACTIVE_CHANNEL_ID;
 const slackAuthToken = process.env.SLACK_AUTH_TOKEN;
 const githubAccessToken = process.env.GHP_ACCESS_TOKEN;
 
-if (
-  !slackAuthToken ||
-  !slackWatcherChannelId ||
-  !slackTestChannelId ||
-  !slackBotToken ||
-  !githubAccessToken ||
-  !slackActiveChannelId
-)
-  throw new Error('Missing env vars');
+if (!slackAuthToken) throw new Error('Missint Slack Auth Token');
+if (!slackBotToken) throw new Error('Missing Slack Bot Token');
+if (!slackWatcherChannelId) throw new Error('Missing Slack Watcher Channel ID');
+if (!slackTestChannelId) throw new Error('Missing Slack Test Channel ID');
+if (!slackActiveChannelId) throw new Error('Missing Slack Active Channel ID');
+if (!githubAccessToken) throw new Error('Missing Github Access Token');
 
 const PORT = 3000;
 const app = express();
