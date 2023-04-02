@@ -8,9 +8,9 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "start": "node dist/src/index.js",
     "build": "tsc -p .",
-    "dev": "nodemon --watch \"src/**/*.ts\" --exec \"ts-node\" src/index.ts",
+    "start": "node -r tsconfig-paths/register dist/src/index.js",
+    "dev": "nodemon --watch \"src/**/*.ts\" --exec \"ts-node\" -r tsconfig-paths/register src/index.ts",
     "deploy": "scripts/deploy.sh",
     "test:unit": "jest",
     "lint": "eslint ./src"
@@ -36,6 +36,7 @@
     "prettier": "2.8.7",
     "ts-jest": "29.0.5",
     "ts-node": "10.9.1",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "5.0.2"
   }
 }
