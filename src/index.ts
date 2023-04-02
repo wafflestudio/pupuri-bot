@@ -2,13 +2,13 @@ import dotenv from 'dotenv';
 import express from 'express';
 import cron from 'node-cron';
 
-import { getGithubClient } from './clients/github';
-import { getSlackClient } from './clients/slack';
-import { getSlackController } from './controllers/slack';
-import { getGithubRepository } from './repositories/github';
-import { getGithubService } from './services/github';
-import { getLogService } from './services/log';
-import { getSlackService } from './services/slack';
+import { getGithubClient } from '@/clients/github';
+import { getSlackClient } from '@/clients/slack';
+import { getSlackController } from '@/controllers/slack';
+import { getGithubRepository } from '@/repositories/github';
+import { getGithubService } from '@/services/github';
+import { getLogService } from '@/services/log';
+import { getSlackService } from '@/services/slack';
 
 dotenv.config({ path: '.env.local' });
 
