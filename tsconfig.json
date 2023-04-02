@@ -6,10 +6,6 @@
     "rootDir": ".",
     "strict": true,
     "moduleResolution": "node",
-    "esModuleInterop": true,
-    "baseUrl": "src",
-    "paths": {
-      "@/*": ["*"]
-    }
+    "esModuleInterop": true
   }
 }
