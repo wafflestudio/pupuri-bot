@@ -1,5 +1,5 @@
-import { type GithubClient } from '../clients/github';
-import { type Commit, type Repository } from '../entities/github';
+import { type GithubClient } from '@/clients/github';
+import { type Commit, type Repository } from '@/entities/github';
 
 export type GithubRepository = {
   listOrganizationRepositories: (
