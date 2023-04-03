@@ -46,7 +46,7 @@ export const getSlackService = ({
               `${rankEmojis[i]} <${url}|*${name}*> (${length} commits)`,
           )
           .join('\n\n');
-        slackClient.sendMessage('active', [divider, title, divider, repositories].join('\n'));
+        await slackClient.sendMessage('active', [divider, title, divider, repositories].join('\n'));
       } catch (err) {
         logService.logEvent('error', err);
       }
