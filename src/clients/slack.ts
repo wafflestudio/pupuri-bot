@@ -25,7 +25,7 @@ export const getSlackClient = ({
         body: JSON.stringify({ channel: channelIdMap[channel], text }),
       });
       const data = await response.json();
-      if (!response.ok) throw data;
+      if (!data.ok) throw data;
       return data;
     },
   };
