@@ -1,5 +1,5 @@
 export type LogService = {
-  logEvent: (type: 'slack' | 'error', event: unknown) => void;
+  logEvent: (type: 'slack' | 'error' | 'log', event: unknown) => void;
 };
 
 export const getLogService = (): LogService => {

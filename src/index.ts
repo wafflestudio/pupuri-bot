@@ -46,5 +46,8 @@ const slackController = getSlackController({ services: [slackService], external:
 app.post('/slack/action-endpoint', express.json(), (req, res) => slackController.handleEventRequest(req, res));
 
 // Start the server & schedule cron jobs
-app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
-cron.schedule('30 10 * * 1', () => slackService.sendGithubTopRepositoriesLastWeek());
+app.listen(PORT, () => {
+  console.log(`Server listening on port: ${PORT}`);
+  console.log(`Current Time: ${new Date().toISOString()}`);
+});
+cron.schedule('55 10 * * 1', () => slackService.sendGithubTopRepositoriesLastWeek());
