@@ -35,13 +35,10 @@ const slackClient = getSlackClient({
   external: { slackAuthToken, slackWatcherChannelId, slackTestChannelId, slackActiveChannelId },
 });
 const githubClient = getGithubClient({ external: { githubAccessToken } });
-
 const githubRepostitory = getGithubRepository({ clients: [githubClient] });
-
 const logService = getLogService();
 const githubService = getGithubService({ repositories: [githubRepostitory] });
 const slackService = getSlackService({ clients: [slackClient], services: [logService, githubService] });
-
 const slackController = getSlackController({ services: [slackService], external: { slackBotToken } });
 
 // routes
@@ -49,5 +46,8 @@ const slackController = getSlackController({ services: [slackService], external:
 app.post('/slack/action-endpoint', express.json(), (req, res) => slackController.handleEventRequest(req, res));
 
 // Start the server & schedule cron jobs
-app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
-cron.schedule('0 10 * * 1', () => slackService.sendGithubTopRepositoriesLastWeek());
+app.listen(PORT, () => {
+  console.log(`Server listening on port: ${PORT}`);
+  console.log(`Current Time: ${new Date().toISOString()}`);
+});
+cron.schedule('0 2 * * 1', () => slackService.sendGithubTopRepositoriesLastWeek());

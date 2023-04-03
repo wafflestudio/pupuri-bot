@@ -34,18 +34,23 @@ export const getSlackService = ({
       }
     },
     sendGithubTopRepositoriesLastWeek: async () => {
-      const data = await githubService.getTopRepositoriesLastWeek('wafflestudio');
-      const divider = '---------------------------------------------';
-      const title = `*:github: Top 5 Repositories Last Week* :blob-clap:`;
-      const repositories = data
-        .filter(({ commits }) => commits.length > 0)
-        .slice(0, 5)
-        .map(
-          ({ repository: { url, name }, commits: { length } }, i) =>
-            `${rankEmojis[i]} <${url}|*${name}*> (${length} commits)`,
-        )
-        .join('\n\n');
-      slackClient.sendMessage('active', [divider, title, divider, repositories].join('\n'));
+      logService.logEvent('log', 'starting sendGithubTopRepositoriesLastWeek');
+      try {
+        const data = await githubService.getTopRepositoriesLastWeek('wafflestudio');
+        const divider = '---------------------------------------------';
+        const title = `*:github: Top 5 Repositories Last Week* :blob-clap:`;
+        const repositories = data
+          .filter(({ commits }) => commits.length > 0)
+          .slice(0, 5)
+          .map(
+            ({ repository: { url, name }, commits: { length } }, i) =>
+              `${rankEmojis[i]} <${url}|*${name}*> (${length} commits)`,
+          )
+          .join('\n\n');
+        await slackClient.sendMessage('active', [divider, title, divider, repositories].join('\n'));
+      } catch (err) {
+        logService.logEvent('error', err);
+      }
     },
   };
 };

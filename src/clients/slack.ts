@@ -1,4 +1,4 @@
-export type SlackClient = { sendMessage: (channel: Channel, text: string) => void };
+export type SlackClient = { sendMessage: (channel: Channel, text: string) => Promise<void> };
 
 type Deps = {
   external: {
@@ -18,12 +18,15 @@ export const getSlackClient = ({
   };
 
   return {
-    sendMessage: (channel: Channel, text: string) => {
-      fetch('https://slack.com/api/chat.postMessage', {
+    sendMessage: async (channel: Channel, text: string) => {
+      const response = await fetch('https://slack.com/api/chat.postMessage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${slackAuthToken}` },
         body: JSON.stringify({ channel: channelIdMap[channel], text }),
       });
+      const data = await response.json();
+      if (!data.ok) throw data;
+      return data;
     },
   };
 };
