@@ -67,7 +67,10 @@ app.post('/slack/action-endpoint', express.json(), (req, res) => slackController
 
 // for dev
 if (isDev) {
-  app.get('/github/trlw', (req, res) => res.sendStatus(200) && githubController.sendGithubTopRepositoriesLastWeek());
+  app.get(
+    '/dev/github/trlw',
+    (req, res) => res.sendStatus(200) && githubController.sendGithubTopRepositoriesLastWeek(),
+  );
 }
 
 /**
