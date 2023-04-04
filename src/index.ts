@@ -15,21 +15,19 @@ import { getTeamService } from './services/team';
 
 dotenv.config({ path: '.env.local' });
 
-const slackBotToken = process.env.SLACK_BOT_TOKEN;
 const slackAuthToken = process.env.SLACK_AUTH_TOKEN;
+const slackBotToken = process.env.SLACK_BOT_TOKEN;
 const githubAccessToken = process.env.GHP_ACCESS_TOKEN;
-
-// dev 환경일 경우 모두 test 로만 보내기
-const slackTestChannelId = process.env.SLACK_TEST_CHANNEL_ID;
 const slackWatcherChannelId = process.env.SLACK_WATCHER_CHANNEL_ID;
 const slackActiveChannelId = process.env.SLACK_ACTIVE_CHANNEL_ID;
+const slackPupuriChannelId = process.env.SLACK_PUPURI_CHANNEL_ID;
 
 if (!slackAuthToken) throw new Error('Missint Slack Auth Token');
 if (!slackBotToken) throw new Error('Missing Slack Bot Token');
-if (!slackWatcherChannelId) throw new Error('Missing Slack Watcher Channel ID');
-if (!slackTestChannelId) throw new Error('Missing Slack Test Channel ID');
-if (!slackActiveChannelId) throw new Error('Missing Slack Active Channel ID');
 if (!githubAccessToken) throw new Error('Missing Github Access Token');
+if (!slackWatcherChannelId) throw new Error('Missing Slack Watcher Channel ID');
+if (!slackActiveChannelId) throw new Error('Missing Slack Active Channel ID');
+if (!slackPupuriChannelId) throw new Error('Missing Slack Pupuri Channel ID');
 
 const PORT = 3000;
 const app = express();
@@ -43,7 +41,12 @@ const app = express();
 ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝                                    
  */
 const slackClient = getSlackClient({
-  external: { slackAuthToken, slackWatcherChannelId, slackTestChannelId, slackActiveChannelId },
+  external: { slackAuthToken },
+  channels: {
+    'project-pupuri': slackPupuriChannelId,
+    'slack-watcher': slackWatcherChannelId,
+    active: slackActiveChannelId,
+  },
 });
 const githubClient = getGithubClient({ external: { githubAccessToken } });
 const githubRepostitory = getGithubRepository({ clients: [githubClient] });

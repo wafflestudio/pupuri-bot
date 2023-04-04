@@ -36,7 +36,7 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             --build-arg SLACK_BOT_TOKEN=${{ secrets.SLACK_BOT_TOKEN }} \
             --build-arg SLACK_AUTH_TOKEN=${{ secrets.SLACK_AUTH_TOKEN }} \
-            --build-arg SLACK_TEST_CHANNEL_ID=${{ secrets.SLACK_TEST_CHANNEL_ID }} \
+            --build-arg SLACK_PUPURI_CHANNEL_ID=${{ secrets.SLACK_PUPURI_CHANNEL_ID }} \
             --build-arg SLACK_ACTIVE_CHANNEL_ID=${{ secrets.SLACK_ACTIVE_CHANNEL_ID }} \
             --build-arg SLACK_WATCHER_CHANNEL_ID=${{ secrets.SLACK_WATCHER_CHANNEL_ID }} \
             --build-arg GHP_ACCESS_TOKEN=${{ secrets.GHP_ACCESS_TOKEN }} \
