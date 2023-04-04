@@ -29,8 +29,14 @@ if (!githubAccessToken) throw new Error('Missing Github Access Token');
 const PORT = 3000;
 const app = express();
 
-// dependencies
-
+/**
+██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
+██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
+██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
+██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
+██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
+╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝                                    
+ */
 const slackClient = getSlackClient({
   external: { slackAuthToken, slackWatcherChannelId, slackTestChannelId, slackActiveChannelId },
 });
@@ -41,13 +47,24 @@ const githubService = getGithubService({ repositories: [githubRepostitory] });
 const slackService = getSlackService({ clients: [slackClient], services: [logService, githubService] });
 const slackController = getSlackController({ services: [slackService], external: { slackBotToken } });
 
-// routes
+/**
+██████╗ ███████╗ ██████╗██╗      █████╗ ██████╗ ███████╗
+██╔══██╗██╔════╝██╔════╝██║     ██╔══██╗██╔══██╗██╔════╝
+██║  ██║█████╗  ██║     ██║     ███████║██████╔╝█████╗  
+██║  ██║██╔══╝  ██║     ██║     ██╔══██║██╔══██╗██╔══╝  
+██████╔╝███████╗╚██████╗███████╗██║  ██║██║  ██║███████╗
+╚═════╝ ╚══════╝ ╚═════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
+ */
 
+cron.schedule('0 2 * * 1', () => slackService.sendGithubTopRepositoriesLastWeek());
 app.post('/slack/action-endpoint', express.json(), (req, res) => slackController.handleEventRequest(req, res));
 
-// Start the server & schedule cron jobs
-app.listen(PORT, () => {
-  console.log(`Server listening on port: ${PORT}`);
-  console.log(`Current Time: ${new Date().toISOString()}`);
-});
-cron.schedule('0 2 * * 1', () => slackService.sendGithubTopRepositoriesLastWeek());
+/**
+███████╗████████╗ █████╗ ██████╗ ████████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔══██╗╚══██╔══╝
+███████╗   ██║   ███████║██████╔╝   ██║   
+╚════██║   ██║   ██╔══██║██╔══██╗   ██║   
+███████║   ██║   ██║  ██║██║  ██║   ██║   
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   
+ */
+app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
