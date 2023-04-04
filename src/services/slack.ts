@@ -34,18 +34,18 @@ export const getSlackService = ({
       }
     },
     sendGithubTopRepositoriesLastWeek: async () => {
+      const topRepositoriesLength = 5;
       logService.logEvent('log', 'starting sendGithubTopRepositoriesLastWeek');
       try {
-        const data = await githubService.getTopRepositoriesLastWeek('wafflestudio');
+        const data = (await githubService.getTopRepositoriesLastWeek('wafflestudio')).slice(0, topRepositoriesLength);
         const divider = '---------------------------------------------';
-        const title = `*:github: Top 5 Repositories Last Week* :blob-clap:`;
+        const title = `*:github: Top ${topRepositoriesLength} Repositories Last Week* :blob-clap:`;
+        const maxPointStringLength = `${Math.max(...data.map((item) => item.score))}`.length;
         const repositories = data
-          .filter(({ commits }) => commits.length > 0)
-          .slice(0, 5)
-          .map(
-            ({ repository: { html_url, name }, commits: { length } }, i) =>
-              `${rankEmojis[i]} <${html_url}|*${name}*> (${length} commits)`,
-          )
+          .map(({ repository: { html_url, name }, score, details: { commentCount, pullRequestCount } }, i) => {
+            const scoreString = `${score}`.padStart(maxPointStringLength, ' ');
+            return `${rankEmojis[i]} [${scoreString}p] <${html_url}|*${name}*> (${pullRequestCount} pull requests, ${commentCount} comments)`;
+          })
           .join('\n\n');
         await slackClient.sendMessage('active', [divider, title, divider, repositories].join('\n'));
       } catch (err) {
