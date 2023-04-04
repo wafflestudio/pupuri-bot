@@ -20,10 +20,13 @@ export const getGithubService = ({ repositories: [githubRepository] }: Deps): Gi
             since: aWeekAgo,
             perPage: 100,
           });
-          return { repository: repo, commits };
+          return [{ repository: repo, commits }];
         }),
       );
-      const sorted = repoWithCommits.slice().sort((a, b) => b.commits.length - a.commits.length);
+      const sorted = repoWithCommits
+        .flat()
+        .slice()
+        .sort((a, b) => b.commits.length - a.commits.length);
       return sorted;
     },
   };

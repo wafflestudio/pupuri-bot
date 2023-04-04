@@ -4,6 +4,7 @@ import cron from 'node-cron';
 
 import { getGithubClient } from './clients/github';
 import { getSlackClient } from './clients/slack';
+import { getGithubController } from './controllers/github';
 import { getSlackController } from './controllers/slack';
 import { getGithubRepository } from './repositories/github';
 import { getGithubService } from './services/github';
@@ -12,12 +13,16 @@ import { getSlackService } from './services/slack';
 
 dotenv.config({ path: '.env.local' });
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 const slackBotToken = process.env.SLACK_BOT_TOKEN;
-const slackWatcherChannelId = process.env.SLACK_WATCHER_CHANNEL_ID;
-const slackTestChannelId = process.env.SLACK_TEST_CHANNEL_ID;
-const slackActiveChannelId = process.env.SLACK_ACTIVE_CHANNEL_ID;
 const slackAuthToken = process.env.SLACK_AUTH_TOKEN;
 const githubAccessToken = process.env.GHP_ACCESS_TOKEN;
+
+// dev 환경일 경우 모두 test 로만 보내기
+const slackTestChannelId = process.env.SLACK_TEST_CHANNEL_ID;
+const slackWatcherChannelId = isDev ? slackTestChannelId : process.env.SLACK_WATCHER_CHANNEL_ID;
+const slackActiveChannelId = isDev ? slackTestChannelId : process.env.SLACK_ACTIVE_CHANNEL_ID;
 
 if (!slackAuthToken) throw new Error('Missint Slack Auth Token');
 if (!slackBotToken) throw new Error('Missing Slack Bot Token');
@@ -29,8 +34,14 @@ if (!githubAccessToken) throw new Error('Missing Github Access Token');
 const PORT = 3000;
 const app = express();
 
-// dependencies
-
+/**
+██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
+██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
+██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
+██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
+██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
+╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝                                    
+ */
 const slackClient = getSlackClient({
   external: { slackAuthToken, slackWatcherChannelId, slackTestChannelId, slackActiveChannelId },
 });
@@ -40,14 +51,34 @@ const logService = getLogService();
 const githubService = getGithubService({ repositories: [githubRepostitory] });
 const slackService = getSlackService({ clients: [slackClient], services: [logService, githubService] });
 const slackController = getSlackController({ services: [slackService], external: { slackBotToken } });
+const githubController = getGithubController({ services: [slackService] });
 
-// routes
+/**
+██████╗ ███████╗ ██████╗██╗      █████╗ ██████╗ ███████╗
+██╔══██╗██╔════╝██╔════╝██║     ██╔══██╗██╔══██╗██╔════╝
+██║  ██║█████╗  ██║     ██║     ███████║██████╔╝█████╗  
+██║  ██║██╔══╝  ██║     ██║     ██╔══██║██╔══██╗██╔══╝  
+██████╔╝███████╗╚██████╗███████╗██║  ██║██║  ██║███████╗
+╚═════╝ ╚══════╝ ╚═════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
+ */
 
+cron.schedule('0 2 * * 1', () => githubController.sendGithubTopRepositoriesLastWeek());
 app.post('/slack/action-endpoint', express.json(), (req, res) => slackController.handleEventRequest(req, res));
 
-// Start the server & schedule cron jobs
-app.listen(PORT, () => {
-  console.log(`Server listening on port: ${PORT}`);
-  console.log(`Current Time: ${new Date().toISOString()}`);
-});
-cron.schedule('0 2 * * 1', () => slackService.sendGithubTopRepositoriesLastWeek());
+// for dev
+if (isDev) {
+  app.get(
+    '/dev/github/trlw',
+    (req, res) => res.sendStatus(200) && githubController.sendGithubTopRepositoriesLastWeek(),
+  );
+}
+
+/**
+███████╗████████╗ █████╗ ██████╗ ████████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔══██╗╚══██╔══╝
+███████╗   ██║   ███████║██████╔╝   ██║   
+╚════██║   ██║   ██╔══██║██╔══██╗   ██║   
+███████║   ██║   ██║  ██║██║  ██║   ██║   
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   
+ */
+app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
