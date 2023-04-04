@@ -6,10 +6,12 @@ import { getGithubClient } from './clients/github';
 import { getSlackClient } from './clients/slack';
 import { getDashboardController } from './controllers/dashboard';
 import { getSlackController } from './controllers/slack';
+import { getTeamController } from './controllers/team';
 import { getGithubRepository } from './repositories/github';
 import { getDashboardService } from './services/dashboard';
 import { getLogService } from './services/log';
 import { getSlackService } from './services/slack';
+import { getTeamService } from './services/team';
 
 dotenv.config({ path: '.env.local' });
 
@@ -51,6 +53,7 @@ const slackService = getSlackService({ clients: [slackClient], services: [logSer
 const teamService = getTeamService({ clients: [slackClient], repositories: [githubRepostitory] });
 const slackController = getSlackController({ services: [slackService], external: { slackBotToken } });
 const dashboardController = getDashboardController({ services: [slackService] });
+const teamController = getTeamController({ services: [teamService] });
 
 /**
 ██████╗ ███████╗ ██████╗██╗      █████╗ ██████╗ ███████╗
@@ -61,6 +64,7 @@ const dashboardController = getDashboardController({ services: [slackService] })
 ╚═════╝ ╚══════╝ ╚═════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
  */
 
+cron.schedule('0 10 * * *', () => teamController.sendPupuriTeamScrum());
 cron.schedule('0 2 * * 1', () => dashboardController.sendGithubTopRepositoriesLastWeek());
 app.post('/slack/action-endpoint', express.json(), (req, res) => slackController.handleEventRequest(req, res));
 

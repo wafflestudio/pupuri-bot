@@ -15,6 +15,7 @@ export const getSlackClient = ({
     'slack-watcher': slackWatcherChannelId,
     test: slackTestChannelId,
     active: slackActiveChannelId,
+    'project-pupuri': slackTestChannelId,
   };
 
   return {
@@ -31,4 +32,4 @@ export const getSlackClient = ({
   };
 };
 
-type Channel = 'slack-watcher' | 'test' | 'active';
+type Channel = 'slack-watcher' | 'test' | 'active' | 'project-pupuri';

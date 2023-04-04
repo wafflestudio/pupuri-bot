@@ -1,5 +1,5 @@
 import { type GithubClient } from '../clients/github';
-import { type Comment, type PullRequest, type Repository } from '../entities/github';
+import { type Comment, type Issue, type Milestone, type PullRequest, type Repository } from '../entities/github';
 
 export type GithubRepository = {
   listOrganizationRepositories: (
@@ -21,6 +21,20 @@ export type GithubRepository = {
     repository: string,
     options?: { perPage?: number; sort?: 'created_at'; direction?: 'desc' },
   ) => Promise<Comment[]>;
+  listRepositoryMilestones: (
+    organization: string,
+    repository: string,
+    options?: {
+      state?: 'open';
+    },
+  ) => Promise<Milestone[]>;
+  listRepositoryIssues: (
+    organization: string,
+    repository: string,
+    options?: {
+      milestone?: string;
+    },
+  ) => Promise<Issue[]>;
 };
 
 type Deps = { clients: [GithubClient] };
@@ -61,6 +75,29 @@ export const getGithubRepository = ({ clients: [githubClient] }: Deps): GithubRe
         );
         return pullRequests;
       } catch (err) {
+        return [];
+      }
+    },
+    listRepositoryMilestones: async (org, repo, { state } = {}) => {
+      const params = new URLSearchParams();
+      if (state) params.append('state', `${state}`);
+
+      const milestones = await githubClient.get<Milestone[]>(
+        `https://api.github.com/repos/${org}/${repo}/milestones?${params.toString()}`,
+      );
+      return milestones;
+    },
+    listRepositoryIssues: async (org, repo, { milestone } = {}) => {
+      try {
+        const params = new URLSearchParams();
+        if (milestone) params.append('milestone', `${milestone}`);
+
+        const issues = await githubClient.get<Issue[]>(
+          `https://api.github.com/repos/${org}/${repo}/issues?${params.toString()}`,
+        );
+        return issues;
+      } catch (err) {
+        console.log(err);
         return [];
       }
     },
