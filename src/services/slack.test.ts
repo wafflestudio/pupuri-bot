@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import { type SlackClient } from '../clients/slack';
-import { type GithubService } from './github';
+import { type GithubService } from './dashboard';
 import { type LogService } from './log';
 import { getSlackService, type SlackService } from './slack';
 

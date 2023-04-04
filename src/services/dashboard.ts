@@ -1,7 +1,7 @@
 import { type Repository } from '../entities/github';
 import { type GithubRepository } from '../repositories/github';
 
-export type GithubService = {
+export type DashboardService = {
   getTopRepositoriesLastWeek: (organization: string) => Promise<
     {
       repository: Repository;
@@ -12,7 +12,7 @@ export type GithubService = {
 };
 
 type Deps = { repositories: [GithubRepository] };
-export const getGithubService = ({ repositories: [githubRepository] }: Deps): GithubService => {
+export const getDashboardService = ({ repositories: [githubRepository] }: Deps): DashboardService => {
   return {
     getTopRepositoriesLastWeek: async (organization: string) => {
       const aWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);

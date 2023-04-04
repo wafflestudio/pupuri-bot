@@ -1,5 +1,6 @@
 import { type SlackClient } from '../clients/slack';
-import { type GithubService } from './github';
+import { type SlackEvent } from '../entities/slack';
+import { type DashboardService } from './dashboard';
 import { type LogService } from './log';
 
 export type SlackService = {
@@ -8,7 +9,7 @@ export type SlackService = {
   sendGithubTopRepositoriesLastWeek: () => void;
 };
 
-type Deps = { clients: [SlackClient]; services: [LogService, GithubService] };
+type Deps = { clients: [SlackClient]; services: [LogService, DashboardService] };
 export const getSlackService = ({
   clients: [slackClient],
   services: [logService, githubService],

@@ -7,7 +7,7 @@ import { getSlackClient } from './clients/slack';
 import { getDashboardController } from './controllers/dashboard';
 import { getSlackController } from './controllers/slack';
 import { getGithubRepository } from './repositories/github';
-import { getGithubService } from './services/github';
+import { getDashboardService } from './services/dashboard';
 import { getLogService } from './services/log';
 import { getSlackService } from './services/slack';
 
@@ -46,8 +46,9 @@ const slackClient = getSlackClient({
 const githubClient = getGithubClient({ external: { githubAccessToken } });
 const githubRepostitory = getGithubRepository({ clients: [githubClient] });
 const logService = getLogService();
-const githubService = getGithubService({ repositories: [githubRepostitory] });
-const slackService = getSlackService({ clients: [slackClient], services: [logService, githubService] });
+const dashboardService = getDashboardService({ repositories: [githubRepostitory] });
+const slackService = getSlackService({ clients: [slackClient], services: [logService, dashboardService] });
+const teamService = getTeamService({ clients: [slackClient], repositories: [githubRepostitory] });
 const slackController = getSlackController({ services: [slackService], external: { slackBotToken } });
 const dashboardController = getDashboardController({ services: [slackService] });
 
