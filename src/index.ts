@@ -4,6 +4,7 @@ import cron from 'node-cron';
 
 import { getGithubClient } from './clients/github';
 import { getSlackClient } from './clients/slack';
+import { getGithubController } from './controllers/github';
 import { getSlackController } from './controllers/slack';
 import { getGithubRepository } from './repositories/github';
 import { getGithubService } from './services/github';
@@ -46,6 +47,7 @@ const logService = getLogService();
 const githubService = getGithubService({ repositories: [githubRepostitory] });
 const slackService = getSlackService({ clients: [slackClient], services: [logService, githubService] });
 const slackController = getSlackController({ services: [slackService], external: { slackBotToken } });
+const githubController = getGithubController({ services: [slackService] });
 
 /**
 ██████╗ ███████╗ ██████╗██╗      █████╗ ██████╗ ███████╗
@@ -56,7 +58,7 @@ const slackController = getSlackController({ services: [slackService], external:
 ╚═════╝ ╚══════╝ ╚═════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
  */
 
-cron.schedule('0 2 * * 1', () => slackService.sendGithubTopRepositoriesLastWeek());
+cron.schedule('0 2 * * 1', () => githubController.sendGithubTopRepositoriesLastWeek());
 app.post('/slack/action-endpoint', express.json(), (req, res) => slackController.handleEventRequest(req, res));
 
 /**
