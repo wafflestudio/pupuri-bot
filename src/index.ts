@@ -13,12 +13,16 @@ import { getSlackService } from './services/slack';
 
 dotenv.config({ path: '.env.local' });
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 const slackBotToken = process.env.SLACK_BOT_TOKEN;
-const slackWatcherChannelId = process.env.SLACK_WATCHER_CHANNEL_ID;
-const slackTestChannelId = process.env.SLACK_TEST_CHANNEL_ID;
-const slackActiveChannelId = process.env.SLACK_ACTIVE_CHANNEL_ID;
 const slackAuthToken = process.env.SLACK_AUTH_TOKEN;
 const githubAccessToken = process.env.GHP_ACCESS_TOKEN;
+
+// dev 환경일 경우 모두 test 로만 보내기
+const slackTestChannelId = process.env.SLACK_TEST_CHANNEL_ID;
+const slackWatcherChannelId = isDev ? slackTestChannelId : process.env.SLACK_WATCHER_CHANNEL_ID;
+const slackActiveChannelId = isDev ? slackTestChannelId : process.env.SLACK_ACTIVE_CHANNEL_ID;
 
 if (!slackAuthToken) throw new Error('Missint Slack Auth Token');
 if (!slackBotToken) throw new Error('Missing Slack Bot Token');
