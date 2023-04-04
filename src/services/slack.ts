@@ -43,8 +43,8 @@ export const getSlackService = ({
           .filter(({ commits }) => commits.length > 0)
           .slice(0, 5)
           .map(
-            ({ repository: { url, name }, commits: { length } }, i) =>
-              `${rankEmojis[i]} <${url}|*${name}*> (${length} commits)`,
+            ({ repository: { html_url, name }, commits: { length } }, i) =>
+              `${rankEmojis[i]} <${html_url}|*${name}*> (${length} commits)`,
           )
           .join('\n\n');
         await slackClient.sendMessage('active', [divider, title, divider, repositories].join('\n'));
