@@ -13,3 +13,8 @@ export type Comment = {
   body: string; // 'LGTM!'
   created_at: string; // '2011-01-26T19:01:12Z';
 };
+export type Milestone = {
+  number: number; // 1
+};
+export type Issue = { title: string; labels: Label[]; html_url: string };
+export type Label = string | { name: string };

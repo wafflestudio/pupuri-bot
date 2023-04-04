@@ -1,5 +1,6 @@
 import { type SlackClient } from '../clients/slack';
-import { type GithubService } from './github';
+import { type SlackEvent } from '../entities/slack';
+import { type DashboardService } from './dashboard';
 import { type LogService } from './log';
 
 export type SlackService = {
@@ -8,7 +9,7 @@ export type SlackService = {
   sendGithubTopRepositoriesLastWeek: () => void;
 };
 
-type Deps = { clients: [SlackClient]; services: [LogService, GithubService] };
+type Deps = { clients: [SlackClient]; services: [LogService, DashboardService] };
 export const getSlackService = ({
   clients: [slackClient],
   services: [logService, githubService],
@@ -56,16 +57,3 @@ export const getSlackService = ({
 };
 
 const rankEmojis = [':first_place_medal:', ':second_place_medal:', ':third_place_medal:', ':four:', ':five:'];
-
-type ChannelId = string;
-type UserId = string;
-
-/**
- * @see https://api.slack.com/events
- */
-
-type SlackEvent =
-  | { type: 'channel_archive'; channel: ChannelId; user: UserId }
-  | { type: 'channel_created'; channel: { id: ChannelId; name: string; created: number; creator: UserId } }
-  | { type: 'channel_rename'; channel: { id: ChannelId; name: string; created: number } }
-  | { type: 'channel_unarchive'; channel: ChannelId; user: UserId };

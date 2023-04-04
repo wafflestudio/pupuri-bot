@@ -1,28 +1,16 @@
 export type SlackClient = { sendMessage: (channel: Channel, text: string) => Promise<void> };
 
 type Deps = {
-  external: {
-    slackAuthToken: string;
-    slackWatcherChannelId: string;
-    slackTestChannelId: string;
-    slackActiveChannelId: string;
-  };
+  external: { slackAuthToken: string };
+  channels: { [key in Channel]: string };
 };
-export const getSlackClient = ({
-  external: { slackAuthToken, slackWatcherChannelId, slackTestChannelId, slackActiveChannelId },
-}: Deps): SlackClient => {
-  const channelIdMap = {
-    'slack-watcher': slackWatcherChannelId,
-    test: slackTestChannelId,
-    active: slackActiveChannelId,
-  };
-
+export const getSlackClient = ({ external: { slackAuthToken }, channels }: Deps): SlackClient => {
   return {
     sendMessage: async (channel: Channel, text: string) => {
       const response = await fetch('https://slack.com/api/chat.postMessage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${slackAuthToken}` },
-        body: JSON.stringify({ channel: channelIdMap[channel], text }),
+        body: JSON.stringify({ channel: channels[channel], text }),
       });
       const data = await response.json();
       if (!data.ok) throw data;
@@ -31,4 +19,4 @@ export const getSlackClient = ({
   };
 };
 
-type Channel = 'slack-watcher' | 'test' | 'active';
+type Channel = 'slack-watcher' | 'active' | 'project-pupuri';

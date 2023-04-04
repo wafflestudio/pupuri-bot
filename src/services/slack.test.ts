@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import { type SlackClient } from '../clients/slack';
-import { type GithubService } from './github';
+import { type DashboardService } from './dashboard';
 import { type LogService } from './log';
 import { getSlackService, type SlackService } from './slack';
 
@@ -13,7 +13,7 @@ describe('SlackService', () => {
   beforeEach(() => {
     slackClient = { sendMessage: jest.fn() } as unknown as SlackClient;
     logService = { logEvent: jest.fn() } as unknown as LogService;
-    slackService = getSlackService({ clients: [slackClient], services: [logService, {} as GithubService] });
+    slackService = getSlackService({ clients: [slackClient], services: [logService, {} as DashboardService] });
   });
 
   describe('handleVerification', () => {
