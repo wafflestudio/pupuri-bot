@@ -23,12 +23,19 @@ export const getGithubRepository = ({ clients: [githubClient] }: Deps): GithubRe
 
       return githubClient.get<Repository[]>(`https://api.github.com/orgs/${org}/repos?${params.toString()}`);
     },
-    listRepositoryCommits: (org, repo, { since, perPage } = {}) => {
-      const params = new URLSearchParams();
-      if (since) params.append('since', since.toISOString());
-      if (perPage) params.append('per_page', `${perPage}`);
+    listRepositoryCommits: async (org, repo, { since, perPage } = {}) => {
+      try {
+        const params = new URLSearchParams();
+        if (since) params.append('since', since.toISOString());
+        if (perPage) params.append('per_page', `${perPage}`);
 
-      return githubClient.get<Commit[]>(`https://api.github.com/repos/${org}/${repo}/commits?${params.toString()}`);
+        const commits = await githubClient.get<Commit[]>(
+          `https://api.github.com/repos/${org}/${repo}/commits?${params.toString()}`,
+        );
+        return commits;
+      } catch (err) {
+        return [];
+      }
     },
   };
 };

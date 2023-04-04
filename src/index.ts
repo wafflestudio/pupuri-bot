@@ -65,6 +65,11 @@ const githubController = getGithubController({ services: [slackService] });
 cron.schedule('0 2 * * 1', () => githubController.sendGithubTopRepositoriesLastWeek());
 app.post('/slack/action-endpoint', express.json(), (req, res) => slackController.handleEventRequest(req, res));
 
+// for dev
+if (isDev) {
+  app.get('/github/trlw', (req, res) => res.sendStatus(200) && githubController.sendGithubTopRepositoriesLastWeek());
+}
+
 /**
 ███████╗████████╗ █████╗ ██████╗ ████████╗
 ██╔════╝╚══██╔══╝██╔══██╗██╔══██╗╚══██╔══╝
