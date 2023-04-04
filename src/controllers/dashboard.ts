@@ -1,9 +1,9 @@
 import { type SlackService } from '../services/slack';
 
-export type GithubController = { sendGithubTopRepositoriesLastWeek: () => void };
+export type DashboardController = { sendGithubTopRepositoriesLastWeek: () => void };
 
 type Deps = { services: [SlackService] };
-export const getGithubController = ({ services: [slackService] }: Deps): GithubController => {
+export const getDashboardController = ({ services: [slackService] }: Deps): DashboardController => {
   return {
     sendGithubTopRepositoriesLastWeek: () => slackService.sendGithubTopRepositoriesLastWeek(),
   };
