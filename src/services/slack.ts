@@ -40,7 +40,7 @@ export const getSlackService = ({
       try {
         const data = (await githubService.getTopRepositoriesLastWeek('wafflestudio')).slice(0, topRepositoriesLength);
         const divider = '---------------------------------------------';
-        const title = `*:github: Top ${topRepositoriesLength} Repositories Last Week* :blob-clap:`;
+        const title = `*:github: Top ${topRepositoriesLength} Repositories Last 2 Weeks* :blob-clap:`;
         const maxPointStringLength = `${Math.max(...data.map((item) => item.score))}`.length;
         const repositories = data
           .map(({ repository: { html_url, name }, score, details: { commentCount, pullRequestCount } }, i) => {
