@@ -68,7 +68,7 @@ const teamController = getTeamController({ services: [teamService] });
  */
 
 cron.schedule('0 10 * * *', () => teamController.sendPupuriTeamScrum());
-cron.schedule('0 2 * * 1', () => dashboardController.sendGithubTopRepositoriesLastWeek());
+cron.schedule('0 3 * * 1', () => dashboardController.sendGithubTopRepositoriesLastWeek());
 app.post('/slack/action-endpoint', express.json(), (req, res) => slackController.handleEventRequest(req, res));
 
 /**
