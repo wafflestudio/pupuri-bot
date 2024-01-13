@@ -1,5 +1,5 @@
 import { type SlackClient } from '../clients/SlackClient';
-import { Repository } from '../entities/GitHub';
+import { type Repository } from '../entities/GitHub';
 import { type GithubApiRepository } from '../repositories/GithubApiRepository';
 import { type DashboardService } from '../services/DashboardService';
 
