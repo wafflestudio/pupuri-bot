@@ -1,44 +1,8 @@
-import { type GithubClient } from '../clients/github';
-import { type Comment, type Issue, type Milestone, type PullRequest, type Repository } from '../entities/github';
+import { type GithubClient } from '../clients/GitHubClient';
+import { type Comment, type Issue, type Milestone, type PullRequest, type Repository } from '../entities/GitHub';
+import { type GithubApiRepository } from '../repositories/GithubApiRepository';
 
-export type GithubRepository = {
-  listOrganizationRepositories: (
-    organization: string,
-    options?: { perPage?: number; sort?: 'pushed' },
-  ) => Promise<Repository[]>;
-  listRepositoryPullRequests: (
-    organization: string,
-    repository: string,
-    options?: {
-      perPage?: number;
-      sort?: 'created' | 'updated' | 'popularity' | 'long-running';
-      state?: 'closed';
-      direction?: 'desc';
-    },
-  ) => Promise<PullRequest[]>; // 최근 업데이트된 100개만
-  listRepositoryComments: (
-    organization: string,
-    repository: string,
-    options?: { perPage?: number; sort?: 'created_at'; direction?: 'desc' },
-  ) => Promise<Comment[]>;
-  listRepositoryMilestones: (
-    organization: string,
-    repository: string,
-    options?: {
-      state?: 'open';
-    },
-  ) => Promise<Milestone[]>;
-  listRepositoryIssues: (
-    organization: string,
-    repository: string,
-    options?: {
-      milestone?: string;
-    },
-  ) => Promise<Issue[]>;
-};
-
-type Deps = { clients: [GithubClient] };
-export const getGithubRepository = ({ clients: [githubClient] }: Deps): GithubRepository => {
+export const implementGithubApiRepository = ({ githubClient }: { githubClient: GithubClient }): GithubApiRepository => {
   return {
     listOrganizationRepositories: (org, { perPage, sort } = {}) => {
       const params = new URLSearchParams();

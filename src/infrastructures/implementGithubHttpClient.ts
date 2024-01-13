@@ -1,7 +1,6 @@
-export type GithubClient = { get: <T = unknown>(url: string) => Promise<T> };
+import { type GithubClient } from '../clients/GitHubClient';
 
-type Deps = { external: { githubAccessToken: string } };
-export const getGithubClient = ({ external: { githubAccessToken } }: Deps): GithubClient => {
+export const implementGithubHttpClient = ({ githubAccessToken }: { githubAccessToken: string }): GithubClient => {
   return {
     get: async <T>(url: string): Promise<T> => {
       const response = await fetch(url, {

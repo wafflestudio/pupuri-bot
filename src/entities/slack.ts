@@ -10,3 +10,5 @@ export type SlackEvent =
   | { type: 'channel_created'; channel: { id: ChannelId; name: string; created: number; creator: UserId } }
   | { type: 'channel_rename'; channel: { id: ChannelId; name: string; created: number } }
   | { type: 'channel_unarchive'; channel: ChannelId; user: UserId };
+
+export type SlackChannel = 'slack-watcher' | 'active';

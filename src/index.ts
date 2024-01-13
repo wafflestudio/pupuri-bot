@@ -2,14 +2,11 @@ import dotenv from 'dotenv';
 import express from 'express';
 import cron from 'node-cron';
 
-import { getGithubClient } from './clients/github';
-import { getSlackClient } from './clients/slack';
-import { getDashboardController } from './controllers/dashboard';
-import { getSlackController } from './controllers/slack';
-import { getGithubRepository } from './repositories/github';
-import { getDashboardService } from './services/dashboard';
-import { getLogService } from './services/log';
-import { getSlackService } from './services/slack';
+import { implementDashboardService } from './infrastructures/implementDashboardService';
+import { implementGithubApiRepository } from './infrastructures/implementGithubApiRepository';
+import { implementGithubHttpClient } from './infrastructures/implementGithubHttpClient';
+import { implementSlackEventService } from './infrastructures/implementSlackEventService';
+import { implementSlackHttpClient } from './infrastructures/implementSlackHttpClient';
 
 dotenv.config({ path: '.env.local' });
 
@@ -36,20 +33,17 @@ const app = express();
 ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝                                    
  */
-const slackClient = getSlackClient({
+const slackClient = implementSlackHttpClient({
   external: { slackAuthToken },
-  channels: {
+  channelIds: {
     'slack-watcher': slackWatcherChannelId,
     active: slackActiveChannelId,
   },
 });
-const githubClient = getGithubClient({ external: { githubAccessToken } });
-const githubRepostitory = getGithubRepository({ clients: [githubClient] });
-const logService = getLogService();
-const dashboardService = getDashboardService({ repositories: [githubRepostitory] });
-const slackService = getSlackService({ clients: [slackClient], services: [logService, dashboardService] });
-const slackController = getSlackController({ services: [slackService], external: { slackBotToken } });
-const dashboardController = getDashboardController({ services: [slackService] });
+const githubClient = implementGithubHttpClient({ githubAccessToken });
+const githubApiRepository = implementGithubApiRepository({ githubClient });
+const dashboardService = implementDashboardService({ githubApiRepository, slackClient });
+const slackService = implementSlackEventService({ slackClient });
 
 /**
 ██████╗ ███████╗ ██████╗██╗      █████╗ ██████╗ ███████╗
@@ -60,8 +54,22 @@ const dashboardController = getDashboardController({ services: [slackService] })
 ╚═════╝ ╚══════╝ ╚═════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
  */
 
-cron.schedule('0 3 * * 1', () => dashboardController.sendGithubTopRepositoriesLastWeek());
-app.post('/slack/action-endpoint', express.json(), (req, res) => slackController.handleEventRequest(req, res));
+cron.schedule('0 3 * * 1', () => dashboardService.sendGithubTopRepositoriesLastWeek('wafflestudio'));
+app.post('/slack/action-endpoint', express.json(), (req, res) => {
+  try {
+    if (req.body.token !== slackBotToken) throw new Error('403');
+
+    // Slack event subscription verification
+    if (req.body.type === 'url_verification') return res.status(200).send(slackService.handleVerification(req.body));
+
+    return res.status(200).send(slackService.handleEvent(req.body.event));
+  } catch (err) {
+    if (!err || typeof err !== 'object' || !('message' in err)) return res.sendStatus(500);
+    const errCode = Number(err.message);
+    if (isNaN(errCode)) return res.sendStatus(500);
+    res.sendStatus(errCode);
+  }
+});
 
 /**
 ███████╗████████╗ █████╗ ██████╗ ████████╗
