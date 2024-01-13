@@ -19,4 +19,4 @@ export const getSlackClient = ({ external: { slackAuthToken }, channels }: Deps)
   };
 };
 
-type Channel = 'slack-watcher' | 'active' | 'project-pupuri';
+type Channel = 'slack-watcher' | 'active';
