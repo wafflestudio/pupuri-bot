@@ -1,4 +1,4 @@
-import { type SlackEvent } from '../entities/Slacka';
+import { type SlackEvent } from '../entities/Slack';
 
 export type SlackEventService = {
   handleVerification: (body: { challenge: string }) => string;

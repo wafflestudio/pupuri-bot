@@ -1,5 +1,5 @@
 import { type SlackClient } from '../clients/SlackClient';
-import { type SlackChannel } from '../entities/Slacka';
+import { type SlackChannel } from '../entities/Slack';
 
 type Deps = {
   external: { slackAuthToken: string };
