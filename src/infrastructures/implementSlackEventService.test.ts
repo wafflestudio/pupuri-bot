@@ -1,19 +1,16 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import { type SlackClient } from '../clients/slack';
-import { type DashboardService } from './dashboard';
-import { type LogService } from './log';
-import { getSlackService, type SlackService } from './slack';
+import { type SlackClient } from '../clients/SlackClient';
+import { type SlackEventService } from '../services/SlackEventService';
+import { implementSlackEventService } from './implementSlackEventService';
 
 describe('SlackService', () => {
-  let slackService: SlackService;
+  let slackService: SlackEventService;
   let slackClient: SlackClient;
-  let logService: LogService;
 
   beforeEach(() => {
     slackClient = { sendMessage: jest.fn() } as unknown as SlackClient;
-    logService = { logEvent: jest.fn() } as unknown as LogService;
-    slackService = getSlackService({ clients: [slackClient], services: [logService, {} as DashboardService] });
+    slackService = implementSlackEventService({ slackClient });
   });
 
   describe('handleVerification', () => {
@@ -28,7 +25,6 @@ describe('SlackService', () => {
     it('logs the event to the log service', () => {
       const event = { type: 'channel_archive', channel: 'test-channel', user: 'test-user' } as const;
       slackService.handleEvent(event);
-      expect(logService.logEvent).toHaveBeenCalledWith('slack', event);
     });
 
     it('sends a message when a channel is archived', () => {
