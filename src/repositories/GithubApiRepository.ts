@@ -1,4 +1,4 @@
-import { type Comment, type Issue, type Milestone, type PullRequest, type Repository } from '../entities/GitHub';
+import { type Comment, type Issue, type Milestone, type PullRequest, type Repository } from '../entities/GitHuba';
 
 export type GithubApiRepository = {
   listOrganizationRepositories: (
