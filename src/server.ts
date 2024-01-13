@@ -9,12 +9,10 @@ dotenv.config({ path: '.env.local' });
 const slackAuthToken = process.env.SLACK_AUTH_TOKEN;
 const slackBotToken = process.env.SLACK_BOT_TOKEN;
 const slackWatcherChannelId = process.env.SLACK_WATCHER_CHANNEL_ID;
-const slackActiveChannelId = process.env.SLACK_ACTIVE_CHANNEL_ID;
 
 if (!slackAuthToken) throw new Error('Missing Slack Auth Token');
 if (!slackBotToken) throw new Error('Missing Slack Bot Token');
 if (!slackWatcherChannelId) throw new Error('Missing Slack Watcher Channel ID');
-if (!slackActiveChannelId) throw new Error('Missing Slack Active Channel ID');
 
 const PORT = 3000;
 const app = express();
@@ -29,10 +27,7 @@ const app = express();
  */
 const slackClient = implementSlackHttpClient({
   external: { slackAuthToken },
-  channelIds: {
-    'slack-watcher': slackWatcherChannelId,
-    active: slackActiveChannelId,
-  },
+  channelId: slackWatcherChannelId,
 });
 const slackService = implementSlackEventService({ slackClient });
 

@@ -7,16 +7,16 @@ export const implementSlackEventService = ({ slackClient }: { slackClient: Slack
     handleEvent: (event) => {
       switch (event.type) {
         case 'channel_archive':
-          slackClient.sendMessage('slack-watcher', `<#${event.channel}> 채널이 보관되었어요`);
+          slackClient.sendMessage(`<#${event.channel}> 채널이 보관되었어요`);
           break;
         case 'channel_created':
-          slackClient.sendMessage('slack-watcher', `<#${event.channel.id}> 채널이 생성되었어요`);
+          slackClient.sendMessage(`<#${event.channel.id}> 채널이 생성되었어요`);
           break;
         case 'channel_rename':
-          slackClient.sendMessage('slack-watcher', `<#${event.channel.id}> 채널 이름이 변경되었어요`);
+          slackClient.sendMessage(`<#${event.channel.id}> 채널 이름이 변경되었어요`);
           break;
         case 'channel_unarchive':
-          slackClient.sendMessage('slack-watcher', `<#${event.channel}> 채널이 보관 취소되었어요`);
+          slackClient.sendMessage(`<#${event.channel}> 채널이 보관 취소되었어요`);
           break;
       }
     },
