@@ -27,8 +27,8 @@ jobs:
       - name: run script
         run: |
           yarn install
+          SLACK_WEEKLY_CHANNEL_ID=C05PP0Q6SS1 \
           SLACK_AUTH_TOKEN=${{ secrets.SLACK_AUTH_TOKEN }} \
-          SLACK_ACTIVE_CHANNEL_ID=${{ secrets.SLACK_ACTIVE_CHANNEL_ID }} \
-          SLACK_WATCHER_CHANNEL_ID=${{ secrets.SLACK_WATCHER_CHANNEL_ID }} \
           GHP_ACCESS_TOKEN=${{ secrets.GHP_ACCESS_TOKEN }} \
+          GITHUB_ORGANIZATION=wafflestudio \
             yarn send:weekly-summary

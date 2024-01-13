@@ -29,7 +29,7 @@ describe('SlackService', () => {
 
     it('sends a message when a channel is archived', () => {
       slackService.handleEvent({ type: 'channel_archive', channel: 'test-channel', user: 'test-user' });
-      expect(slackClient.sendMessage).toHaveBeenCalledWith('slack-watcher', '<#test-channel> 채널이 보관되었어요');
+      expect(slackClient.sendMessage).toHaveBeenCalledWith('<#test-channel> 채널이 보관되었어요');
     });
 
     it('sends a message when a channel is created', () => {
@@ -37,7 +37,7 @@ describe('SlackService', () => {
         type: 'channel_created',
         channel: { id: 'test-channel', name: 'test-channel-name', created: 1234567890, creator: 'test-user' },
       });
-      expect(slackClient.sendMessage).toHaveBeenCalledWith('slack-watcher', '<#test-channel> 채널이 생성되었어요');
+      expect(slackClient.sendMessage).toHaveBeenCalledWith('<#test-channel> 채널이 생성되었어요');
     });
 
     it('sends a message when a channel is renamed', () => {
@@ -45,12 +45,12 @@ describe('SlackService', () => {
         type: 'channel_rename',
         channel: { id: 'test-channel', name: 'test-channel-name', created: 1234567890 },
       });
-      expect(slackClient.sendMessage).toHaveBeenCalledWith('slack-watcher', '<#test-channel> 채널 이름이 변경되었어요');
+      expect(slackClient.sendMessage).toHaveBeenCalledWith('<#test-channel> 채널 이름이 변경되었어요');
     });
 
     it('sends a message when a channel is unarchived', () => {
       slackService.handleEvent({ type: 'channel_unarchive', channel: 'test-channel', user: 'test-user' });
-      expect(slackClient.sendMessage).toHaveBeenCalledWith('slack-watcher', '<#test-channel> 채널이 보관 취소되었어요');
+      expect(slackClient.sendMessage).toHaveBeenCalledWith('<#test-channel> 채널이 보관 취소되었어요');
     });
   });
 });

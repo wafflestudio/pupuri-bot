@@ -1,5 +1,3 @@
-import { type SlackChannel } from '../entities/Slack';
-
 export type SlackClient = {
-  sendMessage: (channel: SlackChannel, text: string) => Promise<void>;
+  sendMessage: (text: string) => Promise<void>;
 };

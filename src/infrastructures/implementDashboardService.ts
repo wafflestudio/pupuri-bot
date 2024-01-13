@@ -65,7 +65,7 @@ export const implementDashboardService = ({
           return `${rankEmojis[i]} [${scoreString}p] <${html_url}|*${name}*> (${pullRequestCount} pull requests, ${commentCount} comments)`;
         })
         .join('\n\n');
-      await slackClient.sendMessage('active', [divider, title, divider, repositories].join('\n'));
+      await slackClient.sendMessage([divider, title, divider, repositories].join('\n'));
     },
   };
 };
