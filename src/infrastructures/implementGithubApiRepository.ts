@@ -1,5 +1,5 @@
 import { type GithubClient } from '../clients/GitHubClient';
-import { type Comment, type Issue, type Milestone, type PullRequest, type Repository } from '../entities/GitHuba';
+import { type Comment, type Issue, type Milestone, type PullRequest, type Repository } from '../entities/GitHub';
 import { type GithubApiRepository } from '../repositories/GithubApiRepository';
 
 export const implementGithubApiRepository = ({ githubClient }: { githubClient: GithubClient }): GithubApiRepository => {
