@@ -33,4 +33,4 @@ const githubClient = implementGithubHttpClient({ githubAccessToken });
 const githubApiRepository = implementGithubApiRepository({ githubClient });
 const dashboardService = implementDashboardService({ githubApiRepository, slackClient });
 
-dashboardService.sendGithubTopRepositoriesPerTeamLastDay(githubOrganization).catch(console.error);
+dashboardService.sendGithubTopRepositoriesPerTeamLastThreeDays(githubOrganization).catch(console.error);

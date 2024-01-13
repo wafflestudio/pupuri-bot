@@ -68,8 +68,8 @@ export const implementDashboardService = ({
         .join('\n\n');
       await slackClient.sendMessage([divider, title, divider, repositories].join('\n'));
     },
-    sendGithubTopRepositoriesPerTeamLastDay: async (organization: string) => {
-      const aDayAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    sendGithubTopRepositoriesPerTeamLastThreeDays: async (organization: string) => {
+      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
       const repos = await githubApiRepository.listOrganizationRepositories(organization, {
         sort: 'pushed',
         perPage: 30,
@@ -114,7 +114,7 @@ export const implementDashboardService = ({
                 direction: 'desc',
               }) 
             )
-          ).filter((pr) => pr.merged_at && new Date(pr.merged_at) > aDayAgo);
+          ).filter((pr) => pr.merged_at && new Date(pr.merged_at) > threeDaysAgo);
 
           const recentCreatedComments = (
             (await githubApiRepository.listRepositoryComments(organization, serverRepo.name, {
@@ -128,7 +128,7 @@ export const implementDashboardService = ({
                 direction: 'desc',
               })
             )
-          ).filter((c) => new Date(c.created_at) > aDayAgo);
+          ).filter((c) => new Date(c.created_at) > threeDaysAgo);
 
           const score = recentMergedPullRequests.length * 5 + recentCreatedComments.length * 1;
 
