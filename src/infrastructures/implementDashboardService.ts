@@ -74,16 +74,21 @@ export const implementDashboardService = ({
         sort: 'pushed',
         perPage: 30,
       });
-      
-      const reposGroupByTeam = new Map<number, { teamNumber :number, serverRepo: Repository | undefined, clientRepo: Repository | undefined }>();
+
+      const reposGroupByTeam = new Map<
+        number,
+        { teamNumber: number; serverRepo: Repository | undefined; clientRepo: Repository | undefined }
+      >();
       repos.forEach((repo) => {
         console.log(repo.name);
         const extractedNumbers = repo.name.match(/\d+/);
         if (extractedNumbers) {
           const teamNumber = parseInt(extractedNumbers[0], 10);
-          const isServer = repo.name.endsWith("server");
-          
-          const data = reposGroupByTeam.has(teamNumber) ? reposGroupByTeam.get(teamNumber)! : { teamNumber: teamNumber, serverRepo: undefined, clientRepo: undefined };
+          const isServer = repo.name.endsWith('server');
+
+          const data = reposGroupByTeam.has(teamNumber)
+            ? reposGroupByTeam.get(teamNumber)!
+            : { teamNumber: teamNumber, serverRepo: undefined, clientRepo: undefined };
           if (isServer) {
             data.serverRepo = repo;
           } else {
@@ -94,41 +99,44 @@ export const implementDashboardService = ({
       });
 
       console.log(reposGroupByTeam.size);
-      
 
       const repoWithDetails = await Promise.all(
-        Array.from(reposGroupByTeam.values()).map(async ({teamNumber, serverRepo, clientRepo}) => {
+        Array.from(reposGroupByTeam.values()).map(async ({ teamNumber, serverRepo, clientRepo }) => {
           if (!serverRepo || !clientRepo) return [];
 
           const recentMergedPullRequests = (
-            (await githubApiRepository.listRepositoryPullRequests(organization, serverRepo.name, {
+            await githubApiRepository.listRepositoryPullRequests(organization, serverRepo.name, {
               perPage: 100,
               sort: 'updated',
               state: 'closed',
               direction: 'desc',
-            })).concat(
+            })
+          )
+            .concat(
               await githubApiRepository.listRepositoryPullRequests(organization, clientRepo.name, {
                 perPage: 100,
                 sort: 'updated',
                 state: 'closed',
                 direction: 'desc',
-              }) 
+              }),
             )
-          ).filter((pr) => pr.merged_at && new Date(pr.merged_at) > threeDaysAgo);
+            .filter((pr) => pr.merged_at && new Date(pr.merged_at) > threeDaysAgo);
 
           const recentCreatedComments = (
-            (await githubApiRepository.listRepositoryComments(organization, serverRepo.name, {
+            await githubApiRepository.listRepositoryComments(organization, serverRepo.name, {
               perPage: 100,
               sort: 'created_at',
               direction: 'desc',
-            })).concat(
+            })
+          )
+            .concat(
               await githubApiRepository.listRepositoryComments(organization, clientRepo.name, {
                 perPage: 100,
                 sort: 'created_at',
                 direction: 'desc',
-              })
+              }),
             )
-          ).filter((c) => new Date(c.created_at) > threeDaysAgo);
+            .filter((c) => new Date(c.created_at) > threeDaysAgo);
 
           const score = recentMergedPullRequests.length * 5 + recentCreatedComments.length * 1;
 
@@ -158,15 +166,27 @@ export const implementDashboardService = ({
       const maxPointStringLength = `${Math.max(...data.map((item) => item.score))}`.length;
 
       const repositories = data
-        .map(({ teamName, serverRepo: { html_url : server_html_url, name: server_name }, clientRepo: { html_url: client_html_url, name: client_name }, score, details: { commentCount, pullRequestCount } }, i) => {
-          const scoreString = `${score}`.padStart(maxPointStringLength, ' ');
-          const serverEmoji = (server_name[4] == '2' || server_name[4] == '3' || server_name[4] == '5') ? ':spring:' : ':django:';
-          let clientEmoji: string;
-          if (client_name[4] == '1') clientEmoji = ":apple_mac:";
-          else if (client_name[4] == '2' || client_name[4] == '3' || client_name[4] == '4') clientEmoji = ":android:";
-          else  clientEmoji = ":react:";
-          return `${rankEmojis[i]} [${scoreString}p] *${teamName}* (${pullRequestCount} pull requests, ${commentCount} comments)\n\n\t\t${serverEmoji} <${server_html_url}|*${server_name}*>\t${clientEmoji} <${client_html_url}|*${client_name}*>`;
-        })
+        .map(
+          (
+            {
+              teamName,
+              serverRepo: { html_url: server_html_url, name: server_name },
+              clientRepo: { html_url: client_html_url, name: client_name },
+              score,
+              details: { commentCount, pullRequestCount },
+            },
+            i,
+          ) => {
+            const scoreString = `${score}`.padStart(maxPointStringLength, ' ');
+            const serverEmoji =
+              server_name[4] == '2' || server_name[4] == '3' || server_name[4] == '5' ? ':spring:' : ':django:';
+            let clientEmoji: string;
+            if (client_name[4] == '1') clientEmoji = ':apple_mac:';
+            else if (client_name[4] == '2' || client_name[4] == '3' || client_name[4] == '4') clientEmoji = ':android:';
+            else clientEmoji = ':react:';
+            return `${rankEmojis[i]} [${scoreString}p] *${teamName}* (${pullRequestCount} pull requests, ${commentCount} comments)\n\n\t\t${serverEmoji} <${server_html_url}|*${server_name}*>\t${clientEmoji} <${client_html_url}|*${client_name}*>`;
+          },
+        )
         .join('\n\n');
       await slackClient.sendMessage([divider, title, divider, repositories].join('\n'));
     },
