@@ -1,13 +1,25 @@
+import { type Member } from '../entities/Member';
+
 export type GithubDeploymentService = {
   handleCreateRelease: (body: {
-    release: { author: { login: string }; body: string; tag_name: string; html_url: string };
-    repository: { name: string };
+    author: Member | undefined;
+    changes: { author: Member | undefined; content: string }[];
+    tag: string;
+    releaseUrl: string;
+    repository: string;
   }) => Promise<void>;
-  handleActionStart: (body: WorkflowRunBody) => Promise<void>;
-  handleActionComplete: (body: WorkflowRunBody) => Promise<void>;
-};
-
-type WorkflowRunBody = {
-  workflow_run: { name: string; head_branch: string; id: number; html_url: string };
-  repository: { name: string };
+  handleActionStart: (body: {
+    workflowName: string;
+    tag: string;
+    repository: string;
+    workflowId: number;
+    workflowUrl: string;
+  }) => Promise<void>;
+  handleActionComplete: (body: {
+    workflowName: string;
+    tag: string;
+    repository: string;
+    workflowId: number;
+    workflowUrl: string;
+  }) => Promise<void>;
 };

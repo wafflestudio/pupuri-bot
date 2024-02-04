@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 
 import { implementDeploymentService } from './infrastructures/implementDeploymentService';
+import { implementGitHubDeployWebhookController } from './infrastructures/implementGitHubDeployWebhookController';
 import { implementSlackEventService } from './infrastructures/implementSlackEventService';
 import { implementSlackPresenter } from './infrastructures/implementSlackPresenter';
 
@@ -34,10 +35,12 @@ const slackService = implementSlackEventService({
     channelId: slackWatcherChannelId,
   }),
 });
-const deploymentService = implementDeploymentService({
-  messengerPresenter: implementSlackPresenter({
-    slackAuthToken,
-    channelId: deployWatcherChannelId,
+const deployWebhookController = implementGitHubDeployWebhookController({
+  deploymentService: implementDeploymentService({
+    messengerPresenter: implementSlackPresenter({
+      slackAuthToken,
+      channelId: deployWatcherChannelId,
+    }),
   }),
 });
 
@@ -67,11 +70,7 @@ app.post('/slack/action-endpoint', express.json(), (req, res) => {
 });
 
 app.post('/github/webhook-endpoint', express.json(), async (req, res) => {
-  if ('release' in req.body && req.body.action === 'released') await deploymentService.handleCreateRelease(req.body);
-  if ('workflow_run' in req.body && req.body.action === 'requested')
-    await deploymentService.handleActionStart(req.body);
-  if ('workflow_run' in req.body && req.body.action === 'completed')
-    await deploymentService.handleActionComplete(req.body);
+  deployWebhookController.handle(req.body);
   res.sendStatus(200);
 });
 

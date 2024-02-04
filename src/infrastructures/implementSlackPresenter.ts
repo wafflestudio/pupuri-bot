@@ -1,3 +1,4 @@
+import { Member } from '../entities/Member';
 import { type MessageHelper, type MessengerPresenter } from '../presenters/MessengerPresenter';
 
 export const implementSlackPresenter = ({
@@ -22,6 +23,7 @@ const helpers: MessageHelper = {
   formatChannel: (channelId: string) => `<#${channelId}>`,
   formatEmoji: (emoji: string) => `:${emoji}:`,
   formatBold: (text: string) => `*${text}*`,
+  formatMemberMention: (member) => `<@${MEMBER_SLACK_ID_MAP[member]}>`,
 };
 
 const postMessage = async ({
@@ -43,4 +45,9 @@ const postMessage = async ({
   const data = await response.json();
   if (!data.ok) throw data;
   return data as { ts: string };
+};
+
+const MEMBER_SLACK_ID_MAP = {
+  [Member.WOOHM402]: 'U01JQM3GNBW',
+  [Member.JUTAK97]: 'U030UCYA7U3',
 };
