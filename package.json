@@ -12,7 +12,6 @@
     "start:server": "node dist/src/server.js",
     "dev:server": "ts-node src/server.ts",
     "send:weekly-dashboard": "ts-node src/weekly-dashboard.ts",
-    "send:toyproject-21.5-three-days-dashboard": "ts-node src/toyproject-21.5-three-days-dashboard.ts",
     "deploy-server": "scripts/deploy.sh",
     "test:unit": "jest",
     "lint": "eslint ./src"
