@@ -1,8 +1,11 @@
+import { type Member } from '../entities/Member';
+
 export type MessageHelper = {
   formatLink: (text: string, options: { url: string }) => string;
   formatEmoji: (emoji: SupportedEmoji) => string;
   formatChannel: (channelId: string) => string;
   formatBold: (text: string) => string;
+  formatMemberMention: (member: Member) => string;
 };
 
 type MessageGetter = (helper: MessageHelper) => { text: string; options?: { ts?: string } };

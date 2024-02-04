@@ -3,43 +3,29 @@ import { type GithubDeploymentService } from '../services/GithubDeploymentServic
 
 const identifierToSlackTs: Record<string, string> = {};
 
+const unknown = '@unknown';
+
 export const implementDeploymentService = ({
   messengerPresenter,
 }: {
   messengerPresenter: MessengerPresenter;
 }): GithubDeploymentService => {
   return {
-    handleCreateRelease: async (body) => {
-      const author: string = body.release.author.login;
-      const releaseBody: string = body.release.body;
-      const tag: string = body.release.tag_name;
-      const releaseUrl: string = body.release.html_url;
-      const repository = body.repository.name;
-
-      const changes = releaseBody.split('\n').reduce<{ content: string; contributor: string }[]>((acc, cur) => {
-        const match = cur.match(/\* (.*) by @(.*) in (.*)/);
-        if (!match) return acc;
-        return [...acc, { content: match[1], contributor: match[2] }];
-      }, []);
-
-      const { ts } = await messengerPresenter.sendMessage(({ formatEmoji, formatLink }) => ({
+    handleCreateRelease: async ({ changes, author, tag, releaseUrl, repository }) => {
+      const { ts } = await messengerPresenter.sendMessage(({ formatMemberMention, formatEmoji, formatLink }) => ({
         text: [
-          `${formatEmoji('rocket')} *${repository}* by @${author} (${formatLink(tag, { url: releaseUrl })})`,
-          ...changes.map((c) => `  - ${c.content} @${c.contributor}`),
+          `${formatEmoji('rocket')} *${repository}* by ${author ? formatMemberMention(author) : unknown} (${formatLink(
+            tag,
+            { url: releaseUrl },
+          )})`,
+          ...changes.map((c) => ` - ${c.content} by ${c.author ? formatMemberMention(c.author) : unknown}`),
         ].join('\n'),
       }));
 
       identifierToSlackTs[toIdentifier({ tag, repository })] = ts;
     },
-    handleActionStart: async (body) => {
-      const workflowName: string = body.workflow_run.name;
-      const tag: string = body.workflow_run.head_branch;
-      const repository: string = body.repository.name;
-      const workflowId: number = body.workflow_run.id;
-      const workflowUrl: string = body.workflow_run.html_url;
-
-      const isDeploy = workflowName.toLowerCase().includes('deploy');
-      if (!isDeploy) return;
+    handleActionStart: async ({ workflowName, workflowId, workflowUrl, tag, repository }) => {
+      if (!isDeployWorkflow(workflowName)) return;
 
       const ts = identifierToSlackTs[toIdentifier({ tag, repository })];
       if (!ts) return;
@@ -53,15 +39,8 @@ export const implementDeploymentService = ({
         options: { ts },
       }));
     },
-    handleActionComplete: async (body) => {
-      const workflowName: string = body.workflow_run.name;
-      const tag: string = body.workflow_run.head_branch;
-      const repository: string = body.repository.name;
-      const workflowId: number = body.workflow_run.id;
-      const workflowUrl: string = body.workflow_run.html_url;
-
-      const isDeploy = workflowName.toLowerCase().includes('deploy');
-      if (!isDeploy) return;
+    handleActionComplete: async ({ workflowName, workflowId, workflowUrl, tag, repository }) => {
+      if (!isDeployWorkflow(workflowName)) return;
 
       const ts = identifierToSlackTs[toIdentifier({ tag, repository })];
       if (!ts) return;
@@ -79,3 +58,4 @@ export const implementDeploymentService = ({
 };
 
 const toIdentifier = ({ tag, repository }: { repository: string; tag: string }) => `${repository}:${tag}`;
+const isDeployWorkflow = (workflowName: string) => workflowName.toLowerCase().includes('deploy');
