@@ -3,7 +3,7 @@ import express from 'express';
 
 import { implementDeploymentService } from './infrastructures/implementDeploymentService';
 import { implementSlackEventService } from './infrastructures/implementSlackEventService';
-import { implementSlackHttpClient } from './infrastructures/implementSlackHttpClient';
+import { implementSlackPresenter } from './infrastructures/implementSlackPresenter';
 
 dotenv.config({ path: '.env.local' });
 
@@ -29,14 +29,14 @@ const app = express();
 ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝                                    
  */
 const slackService = implementSlackEventService({
-  slackClient: implementSlackHttpClient({
-    external: { slackAuthToken },
+  messengerPresenter: implementSlackPresenter({
+    slackAuthToken,
     channelId: slackWatcherChannelId,
   }),
 });
 const deploymentService = implementDeploymentService({
-  slackClient: implementSlackHttpClient({
-    external: { slackAuthToken },
+  messengerPresenter: implementSlackPresenter({
+    slackAuthToken,
     channelId: deployWatcherChannelId,
   }),
 });
