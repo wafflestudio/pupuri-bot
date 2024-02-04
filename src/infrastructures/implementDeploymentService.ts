@@ -22,9 +22,9 @@ export const implementDeploymentService = ({
         return [...acc, { content: match[1], contributor: match[2] }];
       }, []);
 
-      const { ts } = await messengerPresenter.sendMessage(() => ({
+      const { ts } = await messengerPresenter.sendMessage(({ formatEmoji, formatLink }) => ({
         text: [
-          `:rocket: *${repository}* by @${author} (<${releaseUrl}|${tag}>)`,
+          `${formatEmoji('rocket')} *${repository}* by @${author} (${formatLink(tag, { url: releaseUrl })})`,
           ...changes.map((c) => `  - ${c.content} @${c.contributor}`),
         ].join('\n'),
       }));
@@ -44,8 +44,12 @@ export const implementDeploymentService = ({
       const ts = identifierToSlackTs[toIdentifier({ tag, repository })];
       if (!ts) return;
 
-      await messengerPresenter.sendMessage(() => ({
-        text: [`:wip: deployment started :point_right: <${workflowUrl}|${workflowId}>`].join('\n'),
+      await messengerPresenter.sendMessage(({ formatEmoji, formatLink }) => ({
+        text: [
+          `${formatEmoji('wip')} deployment started ${formatEmoji('point_right')} ${formatLink(`${workflowId}`, {
+            url: workflowUrl,
+          })}`,
+        ].join('\n'),
         options: { ts },
       }));
     },
@@ -62,8 +66,10 @@ export const implementDeploymentService = ({
       const ts = identifierToSlackTs[toIdentifier({ tag, repository })];
       if (!ts) return;
 
-      await messengerPresenter.sendMessage(() => ({
-        text: [`:tada: deployment completed <${workflowUrl}|${workflowId}>`].join('\n'),
+      await messengerPresenter.sendMessage(({ formatEmoji, formatLink }) => ({
+        text: [`${formatEmoji('tada')} deployment completed ${formatLink(`${workflowId}`, { url: workflowUrl })}`].join(
+          '\n',
+        ),
         options: { ts },
       }));
 

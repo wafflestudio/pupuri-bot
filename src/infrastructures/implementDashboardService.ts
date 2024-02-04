@@ -57,17 +57,34 @@ export const implementDashboardService = ({
 
       const data = topRepositories.slice(0, topRepositoriesLength);
       const divider = '---------------------------------------------';
-      const title = `*:github: Top ${topRepositoriesLength} Repositories Last Week* :blob-clap:`;
       const maxPointStringLength = `${Math.max(...data.map((item) => item.score))}`.length;
-      const repositories = data
-        .map(({ repository: { html_url, name }, score, details: { commentCount, pullRequestCount } }, i) => {
-          const scoreString = `${score}`.padStart(maxPointStringLength, ' ');
-          return `${rankEmojis[i]} [${scoreString}p] <${html_url}|*${name}*> (${pullRequestCount} pull requests, ${commentCount} comments)`;
-        })
-        .join('\n\n');
-      await messengerPresenter.sendMessage(() => ({ text: [divider, title, divider, repositories].join('\n') }));
+      await messengerPresenter.sendMessage(({ formatEmoji, formatBold, formatLink }) => {
+        const rankEmojis = [
+          formatEmoji('first_place_medal'),
+          formatEmoji('second_place_medal'),
+          formatEmoji('third_place_medal'),
+          formatEmoji('four'),
+          formatEmoji('five'),
+        ];
+
+        return {
+          text: [
+            divider,
+            `${formatBold(
+              `${formatEmoji('github')} Top ${topRepositoriesLength} Repositories Last Week`,
+            )} ${formatEmoji('blob-clap')}`,
+            divider,
+            data
+              .map(({ repository: { html_url, name }, score, details: { commentCount, pullRequestCount } }, i) => {
+                const scoreString = `${score}`.padStart(maxPointStringLength, ' ');
+                return `${rankEmojis[i]} [${scoreString}p] ${formatLink(formatBold(name), {
+                  url: html_url,
+                })} (${pullRequestCount} pull requests, ${commentCount} comments)`;
+              })
+              .join('\n\n'),
+          ].join('\n'),
+        };
+      });
     },
   };
 };
-
-const rankEmojis = [':first_place_medal:', ':second_place_medal:', ':third_place_medal:', ':four:', ':five:'];
