@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import { implementDashboardService } from './infrastructures/implementDashboardService';
 import { implementGithubApiRepository } from './infrastructures/implementGithubApiRepository';
 import { implementGithubHttpClient } from './infrastructures/implementGithubHttpClient';
-import { implementSlackHttpClient } from './infrastructures/implementSlackHttpClient';
+import { implementSlackPresenter } from './infrastructures/implementSlackPresenter';
 
 dotenv.config({ path: '.env.local' });
 
@@ -25,12 +25,12 @@ if (!githubOrganization) throw new Error('Missing Github Organization');
 ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝                                    
  */
-const slackClient = implementSlackHttpClient({
-  external: { slackAuthToken },
-  channelId: slackWeeklyChannelId,
+
+const dashboardService = implementDashboardService({
+  githubApiRepository: implementGithubApiRepository({
+    githubClient: implementGithubHttpClient({ githubAccessToken }),
+  }),
+  messengerPresenter: implementSlackPresenter({ slackAuthToken, channelId: slackWeeklyChannelId }),
 });
-const githubClient = implementGithubHttpClient({ githubAccessToken });
-const githubApiRepository = implementGithubApiRepository({ githubClient });
-const dashboardService = implementDashboardService({ githubApiRepository, slackClient });
 
 dashboardService.sendGithubTopRepositoriesLastWeek(githubOrganization).catch(console.error);

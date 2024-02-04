@@ -1,9 +1,13 @@
-import { type SlackClient } from '../clients/SlackClient';
+import { type MessengerPresenter } from '../presenters/MessengerPresenter';
 import { type GithubDeploymentService } from '../services/GithubDeploymentService';
 
 const identifierToSlackTs: Record<string, string> = {};
 
-export const implementDeploymentService = ({ slackClient }: { slackClient: SlackClient }): GithubDeploymentService => {
+export const implementDeploymentService = ({
+  messengerPresenter,
+}: {
+  messengerPresenter: MessengerPresenter;
+}): GithubDeploymentService => {
   return {
     handleCreateRelease: async (body) => {
       const author: string = body.release.author.login;
@@ -18,12 +22,12 @@ export const implementDeploymentService = ({ slackClient }: { slackClient: Slack
         return [...acc, { content: match[1], contributor: match[2] }];
       }, []);
 
-      const { ts } = await slackClient.sendMessage(
-        [
+      const { ts } = await messengerPresenter.sendMessage(() => ({
+        text: [
           `:rocket: *${repository}* by @${author} (<${releaseUrl}|${tag}>)`,
           ...changes.map((c) => `  - ${c.content} @${c.contributor}`),
         ].join('\n'),
-      );
+      }));
 
       identifierToSlackTs[toIdentifier({ tag, repository })] = ts;
     },
@@ -40,10 +44,10 @@ export const implementDeploymentService = ({ slackClient }: { slackClient: Slack
       const ts = identifierToSlackTs[toIdentifier({ tag, repository })];
       if (!ts) return;
 
-      await slackClient.sendMessage(
-        [`:wip: deployment started :point_right: <${workflowUrl}|${workflowId}>`].join('\n'),
-        { ts },
-      );
+      await messengerPresenter.sendMessage(() => ({
+        text: [`:wip: deployment started :point_right: <${workflowUrl}|${workflowId}>`].join('\n'),
+        options: { ts },
+      }));
     },
     handleActionComplete: async (body) => {
       const workflowName: string = body.workflow_run.name;
@@ -58,9 +62,10 @@ export const implementDeploymentService = ({ slackClient }: { slackClient: Slack
       const ts = identifierToSlackTs[toIdentifier({ tag, repository })];
       if (!ts) return;
 
-      await slackClient.sendMessage([`:tada: deployment completed <${workflowUrl}|${workflowId}>`].join('\n'), {
-        ts,
-      });
+      await messengerPresenter.sendMessage(() => ({
+        text: [`:tada: deployment completed <${workflowUrl}|${workflowId}>`].join('\n'),
+        options: { ts },
+      }));
 
       delete identifierToSlackTs[toIdentifier({ tag, repository })];
     },

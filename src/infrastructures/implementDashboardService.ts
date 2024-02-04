@@ -1,13 +1,13 @@
-import { type SlackClient } from '../clients/SlackClient';
+import { type MessengerPresenter } from '../presenters/MessengerPresenter';
 import { type GithubApiRepository } from '../repositories/GithubApiRepository';
 import { type DashboardService } from '../services/DashboardService';
 
 export const implementDashboardService = ({
   githubApiRepository,
-  slackClient,
+  messengerPresenter,
 }: {
   githubApiRepository: GithubApiRepository;
-  slackClient: SlackClient;
+  messengerPresenter: MessengerPresenter;
 }): DashboardService => {
   return {
     sendGithubTopRepositoriesLastWeek: async (organization: string) => {
@@ -65,7 +65,7 @@ export const implementDashboardService = ({
           return `${rankEmojis[i]} [${scoreString}p] <${html_url}|*${name}*> (${pullRequestCount} pull requests, ${commentCount} comments)`;
         })
         .join('\n\n');
-      await slackClient.sendMessage([divider, title, divider, repositories].join('\n'));
+      await messengerPresenter.sendMessage(() => ({ text: [divider, title, divider, repositories].join('\n') }));
     },
   };
 };
