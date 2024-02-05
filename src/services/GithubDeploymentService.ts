@@ -3,7 +3,8 @@ import { type Member } from '../entities/Member';
 export type GithubDeploymentService = {
   handleCreateRelease: (body: {
     author: Member | undefined;
-    changes: { author: Member | undefined; content: string }[];
+    otherContributors: Member[];
+    releaseNote: string;
     tag: string;
     releaseUrl: string;
     repository: string;

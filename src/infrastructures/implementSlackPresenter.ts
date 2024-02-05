@@ -24,6 +24,7 @@ const helpers: MessageHelper = {
   formatEmoji: (emoji: string) => `:${emoji}:`,
   formatBold: (text: string) => `*${text}*`,
   formatMemberMention: (member) => `<@${MEMBER_SLACK_ID_MAP[member]}>`,
+  formatCodeBlock: (text: string) => `\`\`\`${text}\`\`\``,
 };
 
 const postMessage = async ({

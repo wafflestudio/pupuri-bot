@@ -26,16 +26,11 @@ export const implementGitHubDeployWebhookController = ({
 
         return deploymentService.handleCreateRelease({
           author: GITHUB_ID_MEMBER_MAP[releaseBody.release.author.login],
-          changes: releaseBody.release.body
-            .split('\n')
-            .reduce<{ content: string; author: Member | undefined }[]>((acc, cur) => {
-              const match = cur.match(/\* (.*) by @(.*) in (.*)/);
-              if (!match) return acc;
-              return [...acc, { content: match[1], author: GITHUB_ID_MEMBER_MAP[match[2]] }];
-            }, []),
           tag: releaseBody.release.tag_name,
           releaseUrl: releaseBody.release.html_url,
           repository: releaseBody.repository.name,
+          releaseNote: releaseBody.release.body,
+          otherContributors: [],
         });
       }
 
