@@ -13,6 +13,7 @@
 ### deploy watcher
 
 - release 를 생성하여 tag base 로 배포할 경우 `#deploy-watcher` 채널로 알림을 보냅니다.
+- https://github.com/organizations/wafflestudio/settings/hooks/458839006 웹훅을 이용합니다.
 
 ### weekly dashboard
 
