@@ -36,6 +36,7 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             --build-arg SLACK_BOT_TOKEN=${{ secrets.SLACK_BOT_TOKEN }} \
             --build-arg SLACK_AUTH_TOKEN=${{ secrets.SLACK_AUTH_TOKEN }} \
+            --build-arg OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} \
             --build-arg SLACK_WATCHER_CHANNEL_ID=C050TMDUSTA \
             --build-arg DEPLOY_WATCHER_CHANNEL_ID=C06H0PJPDNH \
             .

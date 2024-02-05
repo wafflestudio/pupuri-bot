@@ -3,6 +3,7 @@ import express from 'express';
 
 import { implementDeploymentService } from './infrastructures/implementDeploymentService';
 import { implementGitHubDeployWebhookController } from './infrastructures/implementGitHubDeployWebhookController';
+import { implementOpenAiSummarizeRepository } from './infrastructures/implementOpenAiSummarizeRepository';
 import { implementSlackEventService } from './infrastructures/implementSlackEventService';
 import { implementSlackPresenter } from './infrastructures/implementSlackPresenter';
 
@@ -12,11 +13,13 @@ const slackAuthToken = process.env.SLACK_AUTH_TOKEN;
 const slackBotToken = process.env.SLACK_BOT_TOKEN;
 const slackWatcherChannelId = process.env.SLACK_WATCHER_CHANNEL_ID;
 const deployWatcherChannelId = process.env.DEPLOY_WATCHER_CHANNEL_ID;
+const openaiApiKey = process.env.OPENAI_API_KEY;
 
 if (!slackAuthToken) throw new Error('Missing Slack Auth Token');
 if (!slackBotToken) throw new Error('Missing Slack Bot Token');
 if (!slackWatcherChannelId) throw new Error('Missing Slack Watcher Channel ID');
 if (!deployWatcherChannelId) throw new Error('Missing Deploy Watcher Channel ID');
+if (!openaiApiKey) throw new Error('Missing OpenAI API Key');
 
 const PORT = 3000;
 const app = express();
@@ -41,6 +44,7 @@ const deployWebhookController = implementGitHubDeployWebhookController({
       slackAuthToken,
       channelId: deployWatcherChannelId,
     }),
+    summarizeLLMRepository: implementOpenAiSummarizeRepository({ openaiApiKey }),
   }),
 });
 

@@ -6,6 +6,7 @@ export type MessageHelper = {
   formatChannel: (channelId: string) => string;
   formatBold: (text: string) => string;
   formatMemberMention: (member: Member) => string;
+  formatCodeBlock: (text: string) => string;
 };
 
 type MessageGetter = (helper: MessageHelper) => { text: string; options?: { ts?: string } };
@@ -25,4 +26,5 @@ type SupportedEmoji =
   | 'tada'
   | 'point_right'
   | 'blob-clap'
-  | 'github';
+  | 'github'
+  | 'memo';
