@@ -23,7 +23,7 @@ export const implementDeploymentService = ({
         const contributorsText =
           otherContributors.length === 0 ? '' : ` cc. ${otherContributors.map(formatMemberMention).join(', ')}`;
         return {
-          text: [`${formatEmoji('rocket')} *${repository}/${tag}* ${authorText}${contributorsText}}`, summarized].join(
+          text: [`${formatEmoji('rocket')} *${repository}/${tag}* ${authorText}${contributorsText}`, summarized].join(
             '\n\n',
           ),
         };
