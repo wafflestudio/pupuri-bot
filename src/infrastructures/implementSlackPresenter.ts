@@ -1,4 +1,4 @@
-import { Member } from '../entities/Member';
+import { type Member } from '../entities/Member';
 import { type MessageHelper, type MessengerPresenter } from '../presenters/MessengerPresenter';
 
 export const implementSlackPresenter = ({
@@ -48,7 +48,8 @@ const postMessage = async ({
   return data as { ts: string };
 };
 
-const MEMBER_SLACK_ID_MAP = {
-  [Member.WOOHM402]: 'U01JQM3GNBW',
-  [Member.JUTAK97]: 'U030UCYA7U3',
+const MEMBER_SLACK_ID_MAP: Record<Member, string> = {
+  woohm402: 'U01JQM3GNBW',
+  JuTaK97: 'U030UCYA7U3',
+  'peng-u-0807': 'U03171C4MFT',
 };
