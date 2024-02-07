@@ -1,8 +1,7 @@
 import dotenv from 'dotenv';
 
 import { implementDashboardService } from './infrastructures/implementDashboardService';
-import { implementGithubApiRepository } from './infrastructures/implementGithubApiRepository';
-import { implementGithubHttpClient } from './infrastructures/implementGithubHttpClient';
+import { implementGithubOctokitRepository } from './infrastructures/implementGithubOctokitRepository';
 import { implementSlackPresenter } from './infrastructures/implementSlackPresenter';
 
 dotenv.config({ path: '.env.local' });
@@ -27,9 +26,7 @@ if (!githubOrganization) throw new Error('Missing Github Organization');
  */
 
 const dashboardService = implementDashboardService({
-  githubApiRepository: implementGithubApiRepository({
-    githubClient: implementGithubHttpClient({ githubAccessToken }),
-  }),
+  githubApiRepository: implementGithubOctokitRepository({ githubAuthToken: githubAccessToken }),
   messengerPresenter: implementSlackPresenter({ slackAuthToken, channelId: slackWeeklyChannelId }),
 });
 

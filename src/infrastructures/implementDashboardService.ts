@@ -12,26 +12,25 @@ export const implementDashboardService = ({
   return {
     sendGithubTopRepositoriesLastWeek: async (organization: string) => {
       const aWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      const repos = await githubApiRepository.listOrganizationRepositories(organization, {
-        sort: 'pushed',
-        perPage: 30,
+      const repos = await githubApiRepository.listOrganizationRepositories({
+        organization,
+        options: { sort: 'pushed', perPage: 30 },
       });
       const repoWithDetails = await Promise.all(
         repos.map(async (repo) => {
           const recentMergedPullRequests = (
-            await githubApiRepository.listRepositoryPullRequests(organization, repo.name, {
-              perPage: 100,
-              sort: 'updated',
-              state: 'closed',
-              direction: 'desc',
+            await githubApiRepository.listRepositoryPullRequests({
+              organization,
+              repository: repo.name,
+              options: { perPage: 100, sort: 'updated', state: 'closed', direction: 'desc' },
             })
           ).filter((pr) => pr.merged_at && new Date(pr.merged_at) > aWeekAgo);
 
           const recentCreatedComments = (
-            await githubApiRepository.listRepositoryComments(organization, repo.name, {
-              perPage: 100,
-              sort: 'created_at',
-              direction: 'desc',
+            await githubApiRepository.listRepositoryComments({
+              organization,
+              repository: repo.name,
+              options: { perPage: 100, sort: 'created_at', direction: 'desc' },
             })
           ).filter((c) => new Date(c.created_at) > aWeekAgo);
 
