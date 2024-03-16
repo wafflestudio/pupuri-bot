@@ -48,8 +48,11 @@ const postMessage = async ({
   return data as { ts: string };
 };
 
-const MEMBER_SLACK_ID_MAP: Record<Member, string> = {
-  woohm402: 'U01JQM3GNBW',
-  JuTaK97: 'U030UCYA7U3',
+const MEMBER_SLACK_ID_MAP: Record<Member, `U${string}`> = {
   'peng-u-0807': 'U03171C4MFT',
+  chaemin2001: 'U030WM38PM2',
+  eastshine2741: 'U04EC1QEP6V',
+  JuTaK97: 'U030UCYA7U3',
+  shp7724: 'U030UCYBZC3',
+  woohm402: 'U01JQM3GNBW',
 };
