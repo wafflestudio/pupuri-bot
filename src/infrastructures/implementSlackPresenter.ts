@@ -55,4 +55,6 @@ const MEMBER_SLACK_ID_MAP: Record<Member, `U${string}`> = {
   JuTaK97: 'U030UCYA7U3',
   shp7724: 'U030UCYBZC3',
   woohm402: 'U01JQM3GNBW',
+  davin111: 'ULHAW7P7Z',
+  plgafhd: 'U06BEHTT2M8',
 };

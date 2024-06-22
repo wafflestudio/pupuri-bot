@@ -16,6 +16,7 @@ export type MessengerPresenter = {
 };
 
 type SupportedEmoji =
+  | 'blobgamer'
   | 'first_place_medal'
   | 'second_place_medal'
   | 'third_place_medal'

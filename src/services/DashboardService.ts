@@ -1,3 +1,3 @@
 export type DashboardService = {
-  sendGithubTopRepositoriesLastWeek: (organization: string) => Promise<void>;
+  sendWeeklyDashboard: (organization: string) => Promise<void>;
 };
