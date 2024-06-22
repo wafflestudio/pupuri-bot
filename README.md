@@ -1,3 +1,6 @@
+![GitHub commit activity (branch)](https://img.shields.io/github/commit-activity/m/wafflestudio/pupuri-bot/main)
+![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/wafflestudio/pupuri-bot)
+
 # pupuri slack bot
 
 ## features

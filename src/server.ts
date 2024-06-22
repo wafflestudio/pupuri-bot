@@ -86,4 +86,4 @@ app.post('/github/webhook-endpoint', express.json(), async (req, res) => {
 ███████║   ██║   ██║  ██║██║  ██║   ██║   
 ╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   
  */
-app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
+app.listen(PORT, () => console.info(`Server listening on port: ${PORT}`));
