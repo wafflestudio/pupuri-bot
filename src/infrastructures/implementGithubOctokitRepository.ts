@@ -1,12 +1,12 @@
 import { Octokit } from 'octokit';
 
-import { type GithubApiRepository } from '../repositories/GithubApiRepository';
+import { implementDashboardService } from './implementDashboardService';
 
 export const implementGithubOctokitRepository = ({
   githubAuthToken,
 }: {
   githubAuthToken: string;
-}): GithubApiRepository => {
+}): Parameters<typeof implementDashboardService>[0]['githubApiRepository'] => {
   const octokit = new Octokit({ auth: githubAuthToken });
 
   return {
@@ -17,7 +17,7 @@ export const implementGithubOctokitRepository = ({
           sort: options?.sort,
           per_page: options?.perPage,
         })
-        .then((res) => res.data),
+        .then((res) => res.data.map((d) => ({ name: d.name, webUrl: d.html_url }))),
 
     listRepositoryPullRequests: ({ organization, repository, options }) =>
       octokit.rest.pulls
@@ -29,7 +29,13 @@ export const implementGithubOctokitRepository = ({
           direction: options?.direction,
           per_page: options?.perPage,
         })
-        .then((res) => res.data),
+        .then((res) =>
+          res.data.map((d) => ({
+            ...d,
+            assigneeGithubUsername: d.assignee?.login ?? null,
+            mergedAt: d.merged_at ? new Date(d.merged_at) : null,
+          })),
+        ),
 
     listRepositoryComments: ({ organization, repository, options }) =>
       octokit.rest.pulls
@@ -40,6 +46,8 @@ export const implementGithubOctokitRepository = ({
           direction: options?.direction,
           per_page: options?.perPage,
         })
-        .then((res) => res.data),
+        .then((res) =>
+          res.data.map((d) => ({ body: d.body, userGithubUsername: d.user.login, createdAt: new Date(d.created_at) })),
+        ),
   };
 };

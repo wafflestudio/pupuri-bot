@@ -30,4 +30,4 @@ const dashboardService = implementDashboardService({
   messengerPresenter: implementSlackPresenter({ slackAuthToken, channelId: slackWeeklyChannelId }),
 });
 
-dashboardService.sendGithubTopRepositoriesLastWeek(githubOrganization).catch(console.error);
+dashboardService.sendWeeklyDashboard(githubOrganization).catch(console.error);

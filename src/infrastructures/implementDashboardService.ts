@@ -1,63 +1,117 @@
+import { members } from '../entities/Member';
+import { getScore } from '../entities/Score';
 import { type MessengerPresenter } from '../presenters/MessengerPresenter';
-import { type GithubApiRepository } from '../repositories/GithubApiRepository';
 import { type DashboardService } from '../services/DashboardService';
 
 export const implementDashboardService = ({
   githubApiRepository,
   messengerPresenter,
 }: {
-  githubApiRepository: GithubApiRepository;
+  githubApiRepository: {
+    listOrganizationRepositories: (args: {
+      organization: string;
+      options?: { perPage?: number; sort?: 'pushed' };
+    }) => Promise<{ name: string; webUrl: string }[]>;
+    listRepositoryPullRequests: (args: {
+      organization: string;
+      repository: string;
+      options?: {
+        perPage?: number;
+        sort?: 'created' | 'updated' | 'popularity' | 'long-running';
+        state?: 'closed';
+        direction?: 'desc';
+      };
+    }) => Promise<{ assigneeGithubUsername: string | null; mergedAt: Date | null }[]>; // 최근 업데이트된 100개만
+    listRepositoryComments: (args: {
+      organization: string;
+      repository: string;
+      options?: { perPage?: number; sort?: 'created_at'; direction?: 'desc' };
+    }) => Promise<{ userGithubUsername: string; createdAt: Date }[]>;
+  };
   messengerPresenter: MessengerPresenter;
 }): DashboardService => {
   return {
-    sendGithubTopRepositoriesLastWeek: async (organization: string) => {
+    sendWeeklyDashboard: async (organization: string) => {
       const aWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       const repos = await githubApiRepository.listOrganizationRepositories({
         organization,
         options: { sort: 'pushed', perPage: 30 },
       });
-      const repoWithDetails = await Promise.all(
-        repos.map(async (repo) => {
-          const recentMergedPullRequests = (
-            await githubApiRepository.listRepositoryPullRequests({
-              organization,
-              repository: repo.name,
-              options: { perPage: 100, sort: 'updated', state: 'closed', direction: 'desc' },
-            })
-          ).filter((pr) => pr.merged_at && new Date(pr.merged_at) > aWeekAgo);
+      const repoWithDetails = (
+        await Promise.all(
+          repos.map(async (repo) => {
+            const recentMergedPullRequests = (
+              await githubApiRepository.listRepositoryPullRequests({
+                organization,
+                repository: repo.name,
+                options: { perPage: 100, sort: 'updated', state: 'closed', direction: 'desc' },
+              })
+            ).filter((pr) => pr.mergedAt && pr.mergedAt > aWeekAgo);
 
-          const recentCreatedComments = (
-            await githubApiRepository.listRepositoryComments({
-              organization,
-              repository: repo.name,
-              options: { perPage: 100, sort: 'created_at', direction: 'desc' },
-            })
-          ).filter((c) => new Date(c.created_at) > aWeekAgo);
+            const recentCreatedComments = (
+              await githubApiRepository.listRepositoryComments({
+                organization,
+                repository: repo.name,
+                options: { perPage: 100, sort: 'created_at', direction: 'desc' },
+              })
+            ).filter((c) => c.createdAt > aWeekAgo);
 
-          const score = recentMergedPullRequests.length * 5 + recentCreatedComments.length * 1;
-
-          if (score === 0) return [];
-
-          return [
-            {
-              repository: repo,
-              score,
-              details: {
-                pullRequestCount: recentMergedPullRequests.length,
-                commentCount: recentCreatedComments.length,
+            return [
+              {
+                repository: repo,
+                pullRequests: recentMergedPullRequests,
+                comments: recentCreatedComments,
               },
-            },
-          ];
-        }),
-      );
+            ];
+          }),
+        )
+      ).flat();
 
-      const topRepositories = repoWithDetails.flat().sort((a, b) => b.score - a.score);
-      const topRepositoriesLength = 5;
+      const topUserLength = 3;
+      const topRepositoriesLength = 3;
 
-      const data = topRepositories.slice(0, topRepositoriesLength);
+      const topUsers = Object.entries(
+        repoWithDetails
+          .flatMap((r) => [
+            ...r.pullRequests.map((p) => ({ type: 'pullRequest', memberGithubUsername: p.assigneeGithubUsername })),
+            ...r.comments.map((c) => ({ type: 'comment', memberGithubUsername: c.userGithubUsername })),
+          ])
+          .reduce<Record<string, { pullRequestCount: number; commentCount: number }>>(
+            (acc, item) =>
+              item.memberGithubUsername
+                ? {
+                    ...acc,
+                    [item.memberGithubUsername]: {
+                      pullRequestCount:
+                        (acc[item.memberGithubUsername]?.pullRequestCount ?? 0) + (item.type === 'pullRequest' ? 1 : 0),
+                      commentCount:
+                        (acc[item.memberGithubUsername]?.commentCount ?? 0) + (item.type === 'comment' ? 1 : 0),
+                    },
+                  }
+                : acc,
+            {},
+          ),
+      )
+        .map(([member, { pullRequestCount, commentCount }]) => ({
+          member,
+          pullRequestCount,
+          commentCount,
+          score: getScore({ pullRequestCount, commentCount }),
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, topUserLength);
+
+      const topRepositories = repoWithDetails
+        .map((r) => ({
+          ...r,
+          score: getScore({ pullRequestCount: r.pullRequests.length, commentCount: r.comments.length }),
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, topRepositoriesLength);
+
       const divider = '---------------------------------------------';
-      const maxPointStringLength = `${Math.max(...data.map((item) => item.score))}`.length;
-      await messengerPresenter.sendMessage(({ formatEmoji, formatBold, formatLink }) => {
+
+      await messengerPresenter.sendMessage(({ formatEmoji, formatMemberMention, formatBold, formatLink }) => {
         const rankEmojis = [
           formatEmoji('first_place_medal'),
           formatEmoji('second_place_medal'),
@@ -69,18 +123,36 @@ export const implementDashboardService = ({
         return {
           text: [
             divider,
-            `${formatBold(
-              `${formatEmoji('github')} Top ${topRepositoriesLength} Repositories Last Week`,
-            )} ${formatEmoji('blob-clap')}`,
+            `${formatBold(`${formatEmoji('tada')} Top Contributors & Users Last Week`)} ${formatEmoji('blob-clap')}`,
             divider,
-            data
-              .map(({ repository: { html_url, name }, score, details: { commentCount, pullRequestCount } }, i) => {
+
+            '\n',
+
+            `${formatBold(`${formatEmoji('blobgamer')} Contributors`)}\n`,
+
+            topUsers
+              .map(({ member, score, pullRequestCount, commentCount }, i) => {
+                const maxPointStringLength = `${Math.max(...topUsers.map((item) => item.score))}`.length;
+                const scoreString = `${score}`.padStart(maxPointStringLength, ' ');
+                const foundMember = members.find((m) => m === member);
+
+                return `${rankEmojis[i]} [${scoreString}p] ${foundMember ? formatMemberMention(foundMember) : `@${member}`} (${pullRequestCount} pull requests, ${commentCount} comments)`;
+              })
+              .join('\n'),
+
+            '\n',
+
+            `${formatBold(`${formatEmoji('github')} Top Repositories`)}\n`,
+
+            topRepositories
+              .map(({ repository: { webUrl, name }, score, comments, pullRequests }, i) => {
+                const maxPointStringLength = `${Math.max(...topRepositories.map((item) => item.score))}`.length;
                 const scoreString = `${score}`.padStart(maxPointStringLength, ' ');
                 return `${rankEmojis[i]} [${scoreString}p] ${formatLink(formatBold(name), {
-                  url: html_url,
-                })} (${pullRequestCount} pull requests, ${commentCount} comments)`;
+                  url: webUrl,
+                })} (${pullRequests.length} pull requests, ${comments.length} comments)`;
               })
-              .join('\n\n'),
+              .join('\n'),
           ].join('\n'),
         };
       });
