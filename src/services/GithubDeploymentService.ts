@@ -1,9 +1,9 @@
-import { type Member } from '../entities/Member';
+import { type Member, members } from '../entities/Member';
 import { type MessengerPresenter } from '../presenters/MessengerPresenter';
 
 export type GithubDeploymentService = {
   handleCreateRelease: (body: {
-    author: Member | undefined;
+    authorGithubUsername: string;
     otherContributors: Member[];
     releaseNote: string;
     tag: string;
@@ -28,8 +28,6 @@ export type GithubDeploymentService = {
 
 const identifierToSlackTs: Record<string, string> = {};
 
-const unknown = '@unknown';
-
 export const implementDeploymentService = ({
   messengerPresenter,
 
@@ -39,13 +37,28 @@ export const implementDeploymentService = ({
   summarizeLLMRepository: { summarizeReleaseNote: (content: string, options: { maxLen: number }) => Promise<string> };
 }): GithubDeploymentService => {
   return {
-    handleCreateRelease: async ({ releaseNote, author, otherContributors, tag, releaseUrl, repository }) => {
+    handleCreateRelease: async ({
+      releaseNote,
+      authorGithubUsername,
+      otherContributors,
+      tag,
+      releaseUrl,
+      repository,
+    }) => {
       const summarized = await summarizeLLMRepository.summarizeReleaseNote(releaseNote, { maxLen: 100 });
 
       const { ts } = await messengerPresenter.sendMessage(({ formatMemberMention, formatEmoji }) => {
-        const authorText = author ? formatMemberMention(author) : unknown;
+        const foundMember = members.find((m) => m === authorGithubUsername);
+        const authorText = foundMember ? formatMemberMention(foundMember) : `@${authorGithubUsername}`;
         const contributorsText =
-          otherContributors.length === 0 ? '' : ` cc. ${otherContributors.map(formatMemberMention).join(', ')}`;
+          otherContributors.length === 0
+            ? ''
+            : ` cc. ${otherContributors
+                .map((c) => {
+                  const foundContributor = members.find((m) => m === c);
+                  return foundContributor ? formatMemberMention(foundContributor) : `@${c}`;
+                })
+                .join(', ')}`;
         return {
           text: [`${formatEmoji('rocket')} *${repository}/${tag}* ${authorText}${contributorsText}`, summarized].join(
             '\n\n',
