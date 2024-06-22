@@ -48,8 +48,8 @@ export const implementGitHubDeployWebhookController = ({
         return body.action === 'requested'
           ? deploymentService.handleActionStart(params)
           : body.action === 'completed'
-          ? deploymentService.handleActionComplete(params)
-          : null;
+            ? deploymentService.handleActionComplete(params)
+            : null;
       }
     },
   };
