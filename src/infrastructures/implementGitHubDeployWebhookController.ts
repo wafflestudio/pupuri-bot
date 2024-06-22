@@ -1,5 +1,4 @@
 import { type DeployWebhookController } from '../controllers/DeployWebhookConrtoller';
-import { type Member, members } from '../entities/Member';
 import { type GithubDeploymentService } from '../services/GithubDeploymentService';
 
 type ReleaseBody = {
@@ -25,7 +24,7 @@ export const implementGitHubDeployWebhookController = ({
         const releaseBody = body as unknown as ReleaseBody;
 
         return deploymentService.handleCreateRelease({
-          author: findMemberByGithubUsername(releaseBody.release.author.login),
+          authorGithubUsername: releaseBody.release.author.login,
           tag: releaseBody.release.tag_name,
           releaseUrl: releaseBody.release.html_url,
           repository: releaseBody.repository.name,
@@ -53,9 +52,4 @@ export const implementGitHubDeployWebhookController = ({
       }
     },
   };
-};
-
-const findMemberByGithubUsername = (username: string): Member | undefined => {
-  const found = members.find((member) => member === username);
-  return found;
 };
