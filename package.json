@@ -26,7 +26,7 @@
   "devDependencies": {
     "@types/express": "4.17.21",
     "@types/node": "20.14.8",
-    "@woohm402/eslint-config-base": "0.1.0",
+    "@woohm402/eslint-config-base": "^0.2.5",
     "dotenv": "16.4.5",
     "eslint": "9.5.0",
     "prettier": "3.3.2",
