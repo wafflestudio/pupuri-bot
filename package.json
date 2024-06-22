@@ -11,9 +11,9 @@
     "build:server": "tsc -p .",
     "start:server": "node dist/src/server.js",
     "dev:server": "ts-node src/server.ts",
+    "deploy:server": "scripts/deploy.sh",
     "send:weekly-dashboard": "ts-node src/weekly-dashboard.ts",
-    "deploy-server": "scripts/deploy.sh",
-    "test:unit": "jest",
+    "test": "jest",
     "lint": "eslint ./src"
   },
   "dependencies": {
