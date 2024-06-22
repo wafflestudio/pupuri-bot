@@ -1,6 +1,6 @@
 import { Octokit } from 'octokit';
 
-import { implementDashboardService } from './implementDashboardService';
+import { implementDashboardService } from '../services/DashboardService';
 
 export const implementGithubOctokitRepository = ({
   githubAuthToken,

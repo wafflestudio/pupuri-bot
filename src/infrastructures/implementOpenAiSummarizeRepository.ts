@@ -1,12 +1,12 @@
 import OpenAI from 'openai';
 
-import { type SummarizeLLMRepository } from '../repositories/SummarizeLLMRepository';
+import { implementDeploymentService } from '../services/GithubDeploymentService';
 
 export const implementOpenAiSummarizeRepository = ({
   openaiApiKey,
 }: {
   openaiApiKey: string;
-}): SummarizeLLMRepository => {
+}): Parameters<typeof implementDeploymentService>[0]['summarizeLLMRepository'] => {
   return {
     summarizeReleaseNote: async (content, { maxLen }) => {
       const openai = new OpenAI({ apiKey: openaiApiKey });

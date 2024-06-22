@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 
-import { implementDashboardService } from './infrastructures/implementDashboardService';
 import { implementGithubOctokitRepository } from './infrastructures/implementGithubOctokitRepository';
 import { implementSlackPresenter } from './infrastructures/implementSlackPresenter';
+import { implementDashboardService } from './services/DashboardService';
 
 dotenv.config({ path: '.env.local' });
 
