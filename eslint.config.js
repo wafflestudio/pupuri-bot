@@ -1,5 +1,3 @@
-import woohm402 from '@woohm402/eslint-config-base'
+import woohm402 from '@woohm402/eslint-config-base';
 
-export default [
-  ...woohm402
-]
+export default [...woohm402({ envAllowedFiles: ['src/server.ts', 'src/weekly-dashboard.ts'] })];

@@ -739,10 +739,10 @@
     loupe "^2.3.7"
     pretty-format "^29.7.0"
 
-"@woohm402/eslint-config-base@0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@woohm402/eslint-config-base/-/eslint-config-base-0.1.0.tgz#c7733a46b5021e35f684f663c8759b83fa038b08"
-  integrity sha512-U48REf7SPQdK8I/ofZaTyG2jjwR+wEnb9wLvUamDKIlHvTmHS1zD/8GdbifFiBBcRDiOpJlSx4BiAm2+Dem/7g==
+"@woohm402/eslint-config-base@^0.2.5":
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/@woohm402/eslint-config-base/-/eslint-config-base-0.2.5.tgz#b82fbd29f28eeeaf2576c6eec248d63cba9d9729"
+  integrity sha512-U9AMSsAMVi9sbLNaDFo/zY1p8GOjwbh0bSpVysW32RZ5mygXT0spq2wJqMyIMIMOVukeWkEy9axLEm0avsBFNQ==
   dependencies:
     "@eslint-community/eslint-plugin-eslint-comments" "4.3.0"
     eslint-config-prettier "9.1.0"
