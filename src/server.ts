@@ -1,11 +1,11 @@
 import dotenv from 'dotenv';
 import express from 'express';
 
-import { implementDeploymentService } from './infrastructures/implementDeploymentService';
 import { implementGitHubDeployWebhookController } from './infrastructures/implementGitHubDeployWebhookController';
 import { implementOpenAiSummarizeRepository } from './infrastructures/implementOpenAiSummarizeRepository';
-import { implementSlackEventService } from './infrastructures/implementSlackEventService';
 import { implementSlackPresenter } from './infrastructures/implementSlackPresenter';
+import { implementDeploymentService } from './services/GithubDeploymentService';
+import { implementSlackEventService } from './services/SlackEventService';
 
 dotenv.config({ path: '.env.local' });
 
