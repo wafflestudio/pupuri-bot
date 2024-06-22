@@ -11,7 +11,6 @@ RUN echo "SLACK_WATCHER_CHANNEL_ID=${SLACK_WATCHER_CHANNEL_ID}" >> .env.local
 RUN echo "DEPLOY_WATCHER_CHANNEL_ID=${DEPLOY_WATCHER_CHANNEL_ID}" >> .env.local
 RUN echo "OPENAI_API_KEY=${OPENAI_API_KEY}" >> .env.local
 RUN yarn install
-RUN yarn build:server
 CMD ["yarn", "start:server"]
 
 EXPOSE 3000

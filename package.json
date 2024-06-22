@@ -9,9 +9,7 @@
   "type": "module",
   "private": false,
   "scripts": {
-    "build:server": "tsc -p .",
-    "start:server": "node dist/src/server.js",
-    "dev:server": "tsx src/server.ts",
+    "start:server": "tsx src/server.ts",
     "deploy:server": "scripts/deploy.sh",
     "send:weekly-dashboard": "tsx src/weekly-dashboard.ts",
     "test": "vitest --run",

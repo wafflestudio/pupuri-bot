@@ -40,7 +40,7 @@ OPENAI_API_KEY=sk-...
 서버를 띄우려면 아래와 같이 수행해주세요.
 
 ```bash
-yarn dev:server
+yarn start:server
 ```
 
 weekly dashboard 전송을 테스트하려면 아래와 같이 수행해주세요.
