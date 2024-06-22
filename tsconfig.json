@@ -5,6 +5,7 @@
     "rootDir": ".",
     "strict": true,
     "moduleResolution": "Bundler",
+    "allowArbitraryExtensions": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "types": ["vitest/globals"]
