@@ -26,7 +26,7 @@ export type GithubDeploymentService = {
   }) => Promise<void>;
 };
 
-const identifierToSlackTs: Record<string, string> = {};
+const identifierToSlackTs: Partial<Record<string, string>> = {};
 
 export const implementDeploymentService = ({
   messengerPresenter,
@@ -106,7 +106,7 @@ export const implementDeploymentService = ({
         options: { ts },
       }));
 
-      delete identifierToSlackTs[toIdentifier({ tag, repository })];
+      identifierToSlackTs[toIdentifier({ tag, repository })] = undefined;
     },
   };
 };

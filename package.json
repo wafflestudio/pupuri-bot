@@ -21,12 +21,12 @@
   "dependencies": {
     "express": "4.19.2",
     "octokit": "4.0.2",
-    "openai": "4.52.0"
+    "openai": "4.52.1"
   },
   "devDependencies": {
     "@types/express": "4.17.21",
-    "@types/node": "20.14.8",
-    "@woohm402/eslint-config-base": "^0.2.5",
+    "@types/node": "20.14.9",
+    "@woohm402/eslint-config-base": "0.3.1",
     "dotenv": "16.4.5",
     "eslint": "9.5.0",
     "prettier": "3.3.2",
