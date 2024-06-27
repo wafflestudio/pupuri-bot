@@ -1,10 +1,10 @@
-import { type Member, members } from '../entities/Member';
+import { Member } from '../entities/Member';
 import { type MessengerPresenter } from '../presenters/MessengerPresenter';
 
 export type GithubDeploymentService = {
   handleCreateRelease: (body: {
     authorGithubUsername: string;
-    otherContributors: Member[];
+    otherContributors: Member['githubUsername'][];
     releaseNote: string;
     tag: string;
     releaseUrl: string;
@@ -30,11 +30,12 @@ const identifierToSlackTs: Record<string, string> = {};
 
 export const implementDeploymentService = ({
   messengerPresenter,
-
   summarizeLLMRepository,
+  memberRepository,
 }: {
   messengerPresenter: MessengerPresenter;
   summarizeLLMRepository: { summarizeReleaseNote: (content: string, options: { maxLen: number }) => Promise<string> };
+  memberRepository: { getAllMembers: () => Promise<{ members: Member[] }> };
 }): GithubDeploymentService => {
   return {
     handleCreateRelease: async ({
@@ -46,16 +47,17 @@ export const implementDeploymentService = ({
       repository,
     }) => {
       const summarized = await summarizeLLMRepository.summarizeReleaseNote(releaseNote, { maxLen: 100 });
+      const { members } = await memberRepository.getAllMembers();
 
       const { ts } = await messengerPresenter.sendMessage(({ formatMemberMention, formatEmoji }) => {
-        const foundMember = members.find((m) => m === authorGithubUsername);
+        const foundMember = members.find((m) => m.githubUsername === authorGithubUsername);
         const authorText = foundMember ? formatMemberMention(foundMember) : `@${authorGithubUsername}`;
         const contributorsText =
           otherContributors.length === 0
             ? ''
             : ` cc. ${otherContributors
                 .map((c) => {
-                  const foundContributor = members.find((m) => m === c);
+                  const foundContributor = members.find((m) => m.githubUsername === c);
                   return foundContributor ? formatMemberMention(foundContributor) : `@${c}`;
                 })
                 .join(', ')}`;

@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 
 import { implementGitHubDeployWebhookController } from './infrastructures/implementGitHubDeployWebhookController';
+import { implementMemberSlackRepository } from './infrastructures/implementMemberSlackRepository';
 import { implementOpenAiSummarizeRepository } from './infrastructures/implementOpenAiSummarizeRepository';
 import { implementSlackPresenter } from './infrastructures/implementSlackPresenter';
 import { implementDeploymentService } from './services/GithubDeploymentService';
@@ -45,6 +46,7 @@ const deployWebhookController = implementGitHubDeployWebhookController({
       channelId: deployWatcherChannelId,
     }),
     summarizeLLMRepository: implementOpenAiSummarizeRepository({ openaiApiKey }),
+    memberRepository: implementMemberSlackRepository({ slackAuthToken }),
   }),
 });
 
