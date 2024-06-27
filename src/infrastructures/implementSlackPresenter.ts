@@ -1,4 +1,3 @@
-import { type Member } from '../entities/Member';
 import { type MessageHelper, type MessengerPresenter } from '../presenters/MessengerPresenter';
 
 export const implementSlackPresenter = ({
@@ -23,7 +22,7 @@ const helpers: MessageHelper = {
   formatChannel: (channelId: string) => `<#${channelId}>`,
   formatEmoji: (emoji: string) => `:${emoji}:`,
   formatBold: (text: string) => `*${text}*`,
-  formatMemberMention: (member) => `<@${MEMBER_SLACK_ID_MAP[member]}>`,
+  formatMemberMention: (member) => `<@${member.slackUserId}>`,
   formatCodeBlock: (text: string) => `\`\`\`${text}\`\`\``,
 };
 
@@ -46,15 +45,4 @@ const postMessage = async ({
   const data = await response.json();
   if (!data.ok) throw data;
   return data as { ts: string };
-};
-
-const MEMBER_SLACK_ID_MAP: Record<Member, `U${string}`> = {
-  'peng-u-0807': 'U03171C4MFT',
-  chaemin2001: 'U030WM38PM2',
-  eastshine2741: 'U04EC1QEP6V',
-  JuTaK97: 'U030UCYA7U3',
-  shp7724: 'U030UCYBZC3',
-  woohm402: 'U01JQM3GNBW',
-  davin111: 'ULHAW7P7Z',
-  plgafhd: 'U06BEHTT2M8',
 };

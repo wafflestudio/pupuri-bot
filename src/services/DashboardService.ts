@@ -1,4 +1,4 @@
-import { members } from '../entities/Member';
+import { Member } from '../entities/Member';
 import { getScore } from '../entities/Score';
 import { MessengerPresenter } from '../presenters/MessengerPresenter';
 
@@ -9,7 +9,9 @@ export type DashboardService = {
 export const implementDashboardService = ({
   githubApiRepository,
   messengerPresenter,
+  memberRepository,
 }: {
+  memberRepository: { getAllMembers: () => Promise<{ members: Member[] }> };
   githubApiRepository: {
     listOrganizationRepositories: (args: {
       organization: string;
@@ -35,6 +37,7 @@ export const implementDashboardService = ({
 }): DashboardService => {
   return {
     sendWeeklyDashboard: async (organization: string) => {
+      const { members } = await memberRepository.getAllMembers();
       const aWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       const repos = await githubApiRepository.listOrganizationRepositories({
         organization,
@@ -137,7 +140,7 @@ export const implementDashboardService = ({
               .map(({ member, score, pullRequestCount, commentCount }, i) => {
                 const maxPointStringLength = `${Math.max(...topUsers.map((item) => item.score))}`.length;
                 const scoreString = `${score}`.padStart(maxPointStringLength, ' ');
-                const foundMember = members.find((m) => m === member);
+                const foundMember = members.find((m) => m.githubUsername === member);
 
                 return `${rankEmojis[i]} [${scoreString}p] ${foundMember ? formatMemberMention(foundMember) : `@${member}`} (${pullRequestCount} pull requests, ${commentCount} comments)`;
               })

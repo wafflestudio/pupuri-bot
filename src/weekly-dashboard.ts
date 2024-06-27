@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 
 import { implementGithubOctokitRepository } from './infrastructures/implementGithubOctokitRepository';
+import { implementMemberSlackRepository } from './infrastructures/implementMemberSlackRepository';
 import { implementSlackPresenter } from './infrastructures/implementSlackPresenter';
 import { implementDashboardService } from './services/DashboardService';
 
@@ -28,6 +29,7 @@ if (!githubOrganization) throw new Error('Missing Github Organization');
 const dashboardService = implementDashboardService({
   githubApiRepository: implementGithubOctokitRepository({ githubAuthToken: githubAccessToken }),
   messengerPresenter: implementSlackPresenter({ slackAuthToken, channelId: slackWeeklyChannelId }),
+  memberRepository: implementMemberSlackRepository({ slackAuthToken }),
 });
 
 dashboardService.sendWeeklyDashboard(githubOrganization).catch(console.error);
