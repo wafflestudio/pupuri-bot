@@ -3,6 +3,7 @@ name: send-weekly-dashboard
 on:
   schedule:
     - cron: '20 2 * * 1' # 월요일 한국시간 오전 11시 20분
+  workflow_dispatch:
 
 jobs:
   cron:
@@ -28,3 +29,5 @@ jobs:
           GHP_ACCESS_TOKEN=${{ secrets.GHP_ACCESS_TOKEN }} \
           GITHUB_ORGANIZATION=wafflestudio \
             yarn send:weekly-dashboard
+        env:
+          NODE_OPTIONS: --max_old_space_size=4096
