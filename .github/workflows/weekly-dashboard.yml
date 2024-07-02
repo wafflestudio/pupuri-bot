@@ -3,6 +3,7 @@ name: send-weekly-dashboard
 on:
   schedule:
     - cron: '20 2 * * 1' # 월요일 한국시간 오전 11시 20분
+  workflow_dispatch:
 
 jobs:
   cron:
