@@ -29,3 +29,5 @@ jobs:
           GHP_ACCESS_TOKEN=${{ secrets.GHP_ACCESS_TOKEN }} \
           GITHUB_ORGANIZATION=wafflestudio \
             yarn send:weekly-dashboard
+        env:
+          NODE_OPTIONS: --max_old_space_size=4096
