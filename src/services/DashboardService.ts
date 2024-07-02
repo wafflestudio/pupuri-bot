@@ -129,7 +129,7 @@ export const implementDashboardService = ({
         return {
           text: [
             divider,
-            `${formatBold(`${formatEmoji('tada')} Top Contributors & Users Last Week`)} ${formatEmoji('blob-clap')}`,
+            `${formatBold(`${formatEmoji('tada')} Top Contributors & Repositories Last Week`)} ${formatEmoji('blob-clap')}`,
             divider,
 
             '\n',
