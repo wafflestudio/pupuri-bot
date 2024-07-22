@@ -52,7 +52,7 @@ export const implementDashboardService = ({
                 repository: repo.name,
                 options: { perPage: 100, sort: 'updated', state: 'closed', direction: 'desc' },
               })
-            ).filter((pr) => pr.mergedAt && pr.mergedAt > aWeekAgo);
+            ).filter((pr) => pr.mergedAt !== null && pr.mergedAt > aWeekAgo);
 
             const recentCreatedComments = (
               await githubApiRepository.listRepositoryComments({
@@ -84,7 +84,7 @@ export const implementDashboardService = ({
           ])
           .reduce<Record<string, { pullRequestCount: number; commentCount: number }>>(
             (acc, item) =>
-              item.memberGithubUsername
+              item.memberGithubUsername !== null
                 ? {
                     ...acc,
                     [item.memberGithubUsername]: {
@@ -141,8 +141,11 @@ export const implementDashboardService = ({
                 const maxPointStringLength = `${Math.max(...topUsers.map((item) => item.score))}`.length;
                 const scoreString = `${score}`.padStart(maxPointStringLength, ' ');
                 const foundMember = members.find((m) => m.githubUsername === member);
+                const rankEmoji = rankEmojis[i];
 
-                return `${rankEmojis[i]} [${scoreString}p] ${foundMember ? formatMemberMention(foundMember) : `@${member}`} (${pullRequestCount} pull requests, ${commentCount} comments)`;
+                if (rankEmoji === undefined) throw new Error('Rank emoji is not defined');
+
+                return `${rankEmoji} [${scoreString}p] ${foundMember !== undefined ? formatMemberMention(foundMember) : `@${member}`} (${pullRequestCount} pull requests, ${commentCount} comments)`;
               })
               .join('\n'),
 
@@ -154,7 +157,11 @@ export const implementDashboardService = ({
               .map(({ repository: { webUrl, name }, score, comments, pullRequests }, i) => {
                 const maxPointStringLength = `${Math.max(...topRepositories.map((item) => item.score))}`.length;
                 const scoreString = `${score}`.padStart(maxPointStringLength, ' ');
-                return `${rankEmojis[i]} [${scoreString}p] ${formatLink(formatBold(name), {
+                const rankEmoji = rankEmojis[i];
+
+                if (rankEmoji === undefined) throw new Error('Rank emoji is not defined');
+
+                return `${rankEmoji} [${scoreString}p] ${formatLink(formatBold(name), {
                   url: webUrl,
                 })} (${pullRequests.length} pull requests, ${comments.length} comments)`;
               })

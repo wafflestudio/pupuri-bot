@@ -33,7 +33,7 @@ export const implementGithubOctokitRepository = ({
           res.data.map((d) => ({
             ...d,
             assigneeGithubUsername: d.assignee?.login ?? null,
-            mergedAt: d.merged_at ? new Date(d.merged_at) : null,
+            mergedAt: d.merged_at !== null ? new Date(d.merged_at) : null,
           })),
         ),
 

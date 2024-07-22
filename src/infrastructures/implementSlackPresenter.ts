@@ -9,7 +9,7 @@ export const implementSlackPresenter = ({
 }): MessengerPresenter => {
   return {
     sendMessage: async (getter) => {
-      const { text, options } = await getter(helpers);
+      const { text, options } = getter(helpers);
       return postMessage({ channelId, slackAuthToken, text, options });
     },
   };
@@ -42,7 +42,7 @@ const postMessage = async ({
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${slackAuthToken}` },
     body: JSON.stringify({ channel: channelId, text, thread_ts: options?.ts }),
   });
-  const data = await response.json();
-  if (!data.ok) throw data;
+  const data = (await response.json()) as unknown;
+  if (!response.ok) throw data;
   return data as { ts: string };
 };

@@ -51,14 +51,14 @@ export const implementDeploymentService = ({
 
       const { ts } = await messengerPresenter.sendMessage(({ formatMemberMention, formatEmoji }) => {
         const foundMember = members.find((m) => m.githubUsername === authorGithubUsername);
-        const authorText = foundMember ? formatMemberMention(foundMember) : `@${authorGithubUsername}`;
+        const authorText = foundMember !== undefined ? formatMemberMention(foundMember) : `@${authorGithubUsername}`;
         const contributorsText =
           otherContributors.length === 0
             ? ''
             : ` cc. ${otherContributors
                 .map((c) => {
                   const foundContributor = members.find((m) => m.githubUsername === c);
-                  return foundContributor ? formatMemberMention(foundContributor) : `@${c}`;
+                  return foundContributor !== undefined ? formatMemberMention(foundContributor) : `@${c}`;
                 })
                 .join(', ')}`;
         return {
@@ -82,7 +82,7 @@ export const implementDeploymentService = ({
       if (!isDeployWorkflow(workflowName)) return;
 
       const ts = identifierToSlackTs[toIdentifier({ tag, repository })];
-      if (!ts) return;
+      if (ts === undefined) return;
 
       await messengerPresenter.sendMessage(({ formatEmoji, formatLink }) => ({
         text: [
@@ -97,7 +97,7 @@ export const implementDeploymentService = ({
       if (!isDeployWorkflow(workflowName)) return;
 
       const ts = identifierToSlackTs[toIdentifier({ tag, repository })];
-      if (!ts) return;
+      if (ts === undefined) return;
 
       await messengerPresenter.sendMessage(({ formatEmoji, formatLink }) => ({
         text: [`${formatEmoji('tada')} deployment completed ${formatLink(`${workflowId}`, { url: workflowUrl })}`].join(

@@ -24,7 +24,7 @@ export const implementOpenAiSummarizeRepository = ({
         top_p: 1,
       });
 
-      return response.choices[0].message.content ?? '요약할 수 없습니다.';
+      return response.choices[0]?.message.content ?? '요약할 수 없습니다.';
     },
   };
 };
