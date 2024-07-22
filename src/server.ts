@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import express from 'express';
 
+import { SlackEvent } from './entities/Slack';
 import { implementGitHubDeployWebhookController } from './infrastructures/implementGitHubDeployWebhookController';
 import { implementMemberWaffleDotComRepository } from './infrastructures/implementMemberWaffleDotComRepository';
 import { implementOpenAiSummarizeRepository } from './infrastructures/implementOpenAiSummarizeRepository';
@@ -16,11 +17,11 @@ const slackWatcherChannelId = process.env.SLACK_WATCHER_CHANNEL_ID;
 const deployWatcherChannelId = process.env.DEPLOY_WATCHER_CHANNEL_ID;
 const openaiApiKey = process.env.OPENAI_API_KEY;
 
-if (!slackAuthToken) throw new Error('Missing Slack Auth Token');
-if (!slackBotToken) throw new Error('Missing Slack Bot Token');
-if (!slackWatcherChannelId) throw new Error('Missing Slack Watcher Channel ID');
-if (!deployWatcherChannelId) throw new Error('Missing Deploy Watcher Channel ID');
-if (!openaiApiKey) throw new Error('Missing OpenAI API Key');
+if (slackAuthToken === undefined) throw new Error('Missing Slack Auth Token');
+if (slackBotToken === undefined) throw new Error('Missing Slack Bot Token');
+if (slackWatcherChannelId === undefined) throw new Error('Missing Slack Watcher Channel ID');
+if (deployWatcherChannelId === undefined) throw new Error('Missing Deploy Watcher Channel ID');
+if (openaiApiKey === undefined) throw new Error('Missing OpenAI API Key');
 
 const PORT = 3000;
 const app = express();
@@ -59,25 +60,34 @@ const deployWebhookController = implementGitHubDeployWebhookController({
 ╚═════╝ ╚══════╝ ╚═════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
  */
 
-app.post('/slack/action-endpoint', express.json(), (req, res) => {
-  try {
-    if (req.body.token !== slackBotToken) throw new Error('403');
+app.post<never, string, { token: unknown; type: string; challenge: string; event: SlackEvent }>(
+  '/slack/action-endpoint',
+  express.json(),
+  (req, res) => {
+    try {
+      if (req.body.token !== slackBotToken) throw new Error('403');
 
-    // Slack event subscription verification
-    if (req.body.type === 'url_verification') return res.status(200).send(slackService.handleVerification(req.body));
+      // Slack event subscription verification
+      if (req.body.type === 'url_verification') return res.status(200).send(slackService.handleVerification(req.body));
 
-    return res.status(200).send(slackService.handleEvent(req.body.event));
-  } catch (err) {
-    if (!err || typeof err !== 'object' || !('message' in err)) return res.sendStatus(500);
-    const errCode = Number(err.message);
-    if (isNaN(errCode)) return res.sendStatus(500);
-    res.sendStatus(errCode);
-  }
-});
+      slackService
+        .handleEvent(req.body.event)
+        .then(() => res.sendStatus(200))
+        .catch(() => res.sendStatus(500));
+    } catch (err) {
+      if (err === null || typeof err !== 'object' || !('message' in err)) return res.sendStatus(500);
+      const errCode = Number(err.message);
+      if (isNaN(errCode)) return res.sendStatus(500);
+      res.sendStatus(errCode);
+    }
+  },
+);
 
-app.post('/github/webhook-endpoint', express.json(), async (req, res) => {
-  deployWebhookController.handle(req.body);
-  res.sendStatus(200);
+app.post('/github/webhook-endpoint', express.json(), (req, res) => {
+  deployWebhookController
+    .handle(req.body)
+    .then(() => res.sendStatus(200))
+    .catch(() => res.sendStatus(500));
 });
 
 /**
@@ -88,4 +98,6 @@ app.post('/github/webhook-endpoint', express.json(), async (req, res) => {
 ███████║   ██║   ██║  ██║██║  ██║   ██║   
 ╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   
  */
-app.listen(PORT, () => console.info(`Server listening on port: ${PORT}`));
+app.listen(PORT, () => {
+  console.info(`Server listening on port: ${PORT}`);
+});
