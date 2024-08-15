@@ -9,9 +9,9 @@
   "type": "module",
   "private": false,
   "scripts": {
-    "start:server": "tsx src/server.ts",
+    "start:server": "bun src/server.ts",
     "deploy:server": "./scripts/deploy.sh",
-    "send:weekly-dashboard": "tsx src/weekly-dashboard.ts",
+    "send:weekly-dashboard": "bun src/weekly-dashboard.ts",
     "lint": "eslint ./src",
     "format": "prettier . --check"
   },
@@ -28,7 +28,6 @@
     "eslint": "9.9.0",
     "knip": "5.27.2",
     "prettier": "3.3.3",
-    "tsx": "4.17.0",
     "typescript": "5.5.4"
   }
 }
