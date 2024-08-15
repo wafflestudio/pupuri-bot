@@ -16,6 +16,8 @@ jobs:
         run: yarn
       - name: Check Type
         run: yarn tsc
+      - name: Check format
+        run: yarn format
       - name: Check lint
         run: yarn lint
       - name: Run tests
