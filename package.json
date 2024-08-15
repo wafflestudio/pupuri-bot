@@ -10,14 +10,10 @@
   "private": false,
   "scripts": {
     "start:server": "tsx src/server.ts",
-    "deploy:server": "scripts/deploy.sh",
+    "deploy:server": "./scripts/deploy.sh",
     "send:weekly-dashboard": "tsx src/weekly-dashboard.ts",
-    "test": "vitest --run",
     "lint": "eslint ./src",
     "format": "prettier . --check"
-  },
-  "engines": {
-    "node": ">=20.11.1"
   },
   "dependencies": {
     "express": "4.19.2",
@@ -25,14 +21,14 @@
     "openai": "4.55.7"
   },
   "devDependencies": {
+    "@types/bun": "1.1.6",
     "@types/express": "4.17.21",
-    "@types/node": "22.3.0",
     "@woohm402/eslint-config-base": "0.7.0",
     "dotenv": "16.4.5",
     "eslint": "9.9.0",
+    "knip": "5.27.2",
     "prettier": "3.3.3",
     "tsx": "4.17.0",
-    "typescript": "5.5.4",
-    "vitest": "2.0.5"
+    "typescript": "5.5.4"
   }
 }

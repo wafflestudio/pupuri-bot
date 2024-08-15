@@ -24,6 +24,8 @@
 
 ## setup
 
+먼저 [`bun`](https://bun.sh/) 이 설치되어 있어야 합니다.
+
 아래 환경변수들을 `.env.local` 에 세팅해주세요.
 
 ```env
@@ -40,13 +42,13 @@ OPENAI_API_KEY=sk-...
 서버를 띄우려면 아래와 같이 수행해주세요.
 
 ```bash
-yarn start:server
+bun start:server
 ```
 
 weekly dashboard 전송을 테스트하려면 아래와 같이 수행해주세요.
 
 ```bash
-yarn send:weekly-dashboard
+bun send:weekly-dashboard
 ```
 
 ## deploy
@@ -54,7 +56,7 @@ yarn send:weekly-dashboard
 서버를 배포하려면 아래와 같이 수행해주세요.
 
 ```bash
-yarn deploy:server
+bun deploy:server
 ```
 
 weekly dashboard 는 github actions 로 수행되기에 별도의 배포가 필요하지 않습니다.

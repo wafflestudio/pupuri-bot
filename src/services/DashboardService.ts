@@ -2,7 +2,7 @@ import { Member } from '../entities/Member';
 import { getScore } from '../entities/Score';
 import { MessengerPresenter } from '../presenters/MessengerPresenter';
 
-export type DashboardService = {
+type DashboardService = {
   sendWeeklyDashboard: (organization: string) => Promise<void>;
 };
 

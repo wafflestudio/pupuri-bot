@@ -8,7 +8,6 @@
     "allowArbitraryExtensions": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "noUncheckedIndexedAccess": true,
-    "types": ["vitest/globals"]
+    "noUncheckedIndexedAccess": true
   }
 }
