@@ -1,7 +1,7 @@
 import { type SlackEvent } from '../entities/Slack';
 import { MessengerPresenter } from '../presenters/MessengerPresenter';
 
-export type SlackEventService = {
+type SlackEventService = {
   handleVerification: (body: { challenge: string }) => string;
   handleEvent: (event: SlackEvent) => Promise<void>;
 };

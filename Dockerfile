@@ -1,4 +1,4 @@
-FROM node:20.11.1-alpine
+FROM oven/bun:1.1.13
 ARG SLACK_BOT_TOKEN
 ARG SLACK_AUTH_TOKEN
 ARG SLACK_WATCHER_CHANNEL_ID
@@ -10,7 +10,7 @@ RUN echo "SLACK_AUTH_TOKEN=${SLACK_AUTH_TOKEN}" >> .env.local
 RUN echo "SLACK_WATCHER_CHANNEL_ID=${SLACK_WATCHER_CHANNEL_ID}" >> .env.local
 RUN echo "DEPLOY_WATCHER_CHANNEL_ID=${DEPLOY_WATCHER_CHANNEL_ID}" >> .env.local
 RUN echo "OPENAI_API_KEY=${OPENAI_API_KEY}" >> .env.local
-RUN yarn install
-CMD ["yarn", "start:server"]
+RUN bun install
+CMD ["bun", "start:server"]
 
 EXPOSE 3000
