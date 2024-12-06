@@ -47,7 +47,7 @@ Bun.serve({
     const url = new URL(req.url);
     try {
       if (req.method === 'POST' && url.pathname === '/slack/action-endpoint') {
-        const body: { token: unknown; type: string; challenge: string; event: SlackEvent } = await req.json();
+        const body = (await req.json()) as { token: unknown; type: string; challenge: string; event: SlackEvent };
         if (body.token !== slackBotToken) return new Response(null, { status: 403 });
         if (body.type === 'url_verification')
           return new Response(slackService.handleVerification(body), { status: 200 });
