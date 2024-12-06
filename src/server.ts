@@ -55,7 +55,7 @@ Bun.serve({
       } else {
         throw new Error();
       }
-    } catch (err) {
+    } catch (_) {
       return new Response(null, { status: 500 });
     }
   },

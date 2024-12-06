@@ -18,15 +18,15 @@
   },
   "dependencies": {
     "octokit": "4.0.2",
-    "openai": "4.55.7"
+    "openai": "4.76.0"
   },
   "devDependencies": {
-    "@types/bun": "1.1.6",
-    "@woohm402/eslint-config-base": "0.7.0",
-    "eslint": "9.9.0",
-    "knip": "5.27.2",
-    "prettier": "3.3.3",
-    "typescript": "5.5.4"
+    "@types/bun": "1.1.14",
+    "@woohm402/eslint-config-base": "0.12.0",
+    "eslint": "9.16.0",
+    "knip": "5.39.2",
+    "prettier": "3.4.2",
+    "typescript": "5.7.2"
   },
   "packageManager": "bun@1.1.33"
 }
