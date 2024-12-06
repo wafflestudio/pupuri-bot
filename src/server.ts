@@ -1,5 +1,3 @@
-import dotenv from 'dotenv';
-
 import { SlackEvent } from './entities/Slack';
 import { implementGitHubDeployWebhookController } from './infrastructures/implementGitHubDeployWebhookController';
 import { implementMemberWaffleDotComRepository } from './infrastructures/implementMemberWaffleDotComRepository';
@@ -7,8 +5,6 @@ import { implementOpenAiSummarizeRepository } from './infrastructures/implementO
 import { implementSlackPresenter } from './infrastructures/implementSlackPresenter';
 import { implementDeploymentService } from './services/GithubDeploymentService';
 import { implementSlackEventService } from './services/SlackEventService';
-
-dotenv.config({ path: '.env.local' });
 
 const slackAuthToken = process.env.SLACK_AUTH_TOKEN;
 const slackBotToken = process.env.SLACK_BOT_TOKEN;

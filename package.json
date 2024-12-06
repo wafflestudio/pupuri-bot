@@ -23,7 +23,6 @@
   "devDependencies": {
     "@types/bun": "1.1.6",
     "@woohm402/eslint-config-base": "0.7.0",
-    "dotenv": "16.4.5",
     "eslint": "9.9.0",
     "knip": "5.27.2",
     "prettier": "3.3.3",

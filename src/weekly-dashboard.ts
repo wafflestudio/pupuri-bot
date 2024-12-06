@@ -1,11 +1,7 @@
-import dotenv from 'dotenv';
-
 import { implementGithubOctokitRepository } from './infrastructures/implementGithubOctokitRepository';
 import { implementMemberWaffleDotComRepository } from './infrastructures/implementMemberWaffleDotComRepository';
 import { implementSlackPresenter } from './infrastructures/implementSlackPresenter';
 import { implementDashboardService } from './services/DashboardService';
-
-dotenv.config({ path: '.env.local' });
 
 const slackAuthToken = process.env.SLACK_AUTH_TOKEN;
 const githubAccessToken = process.env.GHP_ACCESS_TOKEN;
@@ -23,7 +19,7 @@ if (githubOrganization === undefined) throw new Error('Missing Github Organizati
 ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
 ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
 ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
-╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝                                    
+╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
  */
 
 const dashboardService = implementDashboardService({
