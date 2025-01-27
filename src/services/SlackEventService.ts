@@ -71,8 +71,10 @@ export const implementSlackEventService = ({
               'user' in event.message &&
               typeof event.message.user === 'string'
             )
-          )
+          ) {
+            console.debug('message', JSON.stringify(event));
             return;
+          }
 
           const user = event.message.user as SlackID;
 

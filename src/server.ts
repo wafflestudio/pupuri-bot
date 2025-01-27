@@ -101,3 +101,5 @@ Bun.serve({
     }
   },
 });
+
+console.info(`Listening on port ${PORT}`);
