@@ -63,8 +63,14 @@ export const implementSlackEventService = ({
           }));
           break;
         case 'message': {
-          if (!('user' in event && typeof event.user === 'string')) {
-            console.debug('message', JSON.stringify(event));
+          if (
+            !(
+              'user' in event &&
+              typeof event.user === 'string' &&
+              event.subtype === undefined
+            )
+          ) {
+            console.debug('skip message', JSON.stringify(event));
             return;
           }
 
