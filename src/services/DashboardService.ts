@@ -1,6 +1,6 @@
-import { Member } from '../entities/Member';
+import type { Member } from '../entities/Member';
 import { getScore } from '../entities/Score';
-import { MessengerPresenter } from '../presenters/MessengerPresenter';
+import type { MessengerPresenter } from '../presenters/MessengerPresenter';
 
 type DashboardService = {
   sendWeeklyDashboard: (organization: string) => Promise<void>;
@@ -26,7 +26,9 @@ export const implementDashboardService = ({
         state?: 'closed';
         direction?: 'desc';
       };
-    }) => Promise<{ assigneeGithubUsername: string | null; mergedAt: Date | null }[]>; // 최근 업데이트된 100개만
+    }) => Promise<
+      { assigneeGithubUsername: string | null; mergedAt: Date | null }[]
+    >; // 최근 업데이트된 100개만
     listRepositoryComments: (args: {
       organization: string;
       repository: string;
@@ -50,7 +52,12 @@ export const implementDashboardService = ({
               await githubApiRepository.listRepositoryPullRequests({
                 organization,
                 repository: repo.name,
-                options: { perPage: 100, sort: 'updated', state: 'closed', direction: 'desc' },
+                options: {
+                  perPage: 100,
+                  sort: 'updated',
+                  state: 'closed',
+                  direction: 'desc',
+                },
               })
             ).filter((pr) => pr.mergedAt !== null && pr.mergedAt > aWeekAgo);
 
@@ -58,7 +65,11 @@ export const implementDashboardService = ({
               await githubApiRepository.listRepositoryComments({
                 organization,
                 repository: repo.name,
-                options: { perPage: 100, sort: 'created_at', direction: 'desc' },
+                options: {
+                  perPage: 100,
+                  sort: 'created_at',
+                  direction: 'desc',
+                },
               })
             ).filter((c) => c.createdAt > aWeekAgo);
 
@@ -79,19 +90,29 @@ export const implementDashboardService = ({
       const topUsers = Object.entries(
         repoWithDetails
           .flatMap((r) => [
-            ...r.pullRequests.map((p) => ({ type: 'pullRequest', memberGithubUsername: p.assigneeGithubUsername })),
-            ...r.comments.map((c) => ({ type: 'comment', memberGithubUsername: c.userGithubUsername })),
+            ...r.pullRequests.map((p) => ({
+              type: 'pullRequest',
+              memberGithubUsername: p.assigneeGithubUsername,
+            })),
+            ...r.comments.map((c) => ({
+              type: 'comment',
+              memberGithubUsername: c.userGithubUsername,
+            })),
           ])
-          .reduce<Record<string, { pullRequestCount: number; commentCount: number }>>(
+          .reduce<
+            Record<string, { pullRequestCount: number; commentCount: number }>
+          >(
             (acc, item) =>
               item.memberGithubUsername !== null
                 ? {
                     ...acc,
                     [item.memberGithubUsername]: {
                       pullRequestCount:
-                        (acc[item.memberGithubUsername]?.pullRequestCount ?? 0) + (item.type === 'pullRequest' ? 1 : 0),
+                        (acc[item.memberGithubUsername]?.pullRequestCount ??
+                          0) + (item.type === 'pullRequest' ? 1 : 0),
                       commentCount:
-                        (acc[item.memberGithubUsername]?.commentCount ?? 0) + (item.type === 'comment' ? 1 : 0),
+                        (acc[item.memberGithubUsername]?.commentCount ?? 0) +
+                        (item.type === 'comment' ? 1 : 0),
                     },
                   }
                 : acc,
@@ -110,65 +131,96 @@ export const implementDashboardService = ({
       const topRepositories = repoWithDetails
         .map((r) => ({
           ...r,
-          score: getScore({ pullRequestCount: r.pullRequests.length, commentCount: r.comments.length }),
+          score: getScore({
+            pullRequestCount: r.pullRequests.length,
+            commentCount: r.comments.length,
+          }),
         }))
         .sort((a, b) => b.score - a.score)
         .slice(0, topRepositoriesLength);
 
       const divider = '---------------------------------------------';
 
-      await messengerPresenter.sendMessage(({ formatEmoji, formatMemberMention, formatBold, formatLink }) => {
-        const rankEmojis = [
-          formatEmoji('first_place_medal'),
-          formatEmoji('second_place_medal'),
-          formatEmoji('third_place_medal'),
-          formatEmoji('four'),
-          formatEmoji('five'),
-        ];
+      await messengerPresenter.sendMessage(
+        ({ formatEmoji, formatMemberMention, formatBold, formatLink }) => {
+          const rankEmojis = [
+            formatEmoji('first_place_medal'),
+            formatEmoji('second_place_medal'),
+            formatEmoji('third_place_medal'),
+            formatEmoji('four'),
+            formatEmoji('five'),
+          ];
 
-        return {
-          text: [
-            divider,
-            `${formatBold(`${formatEmoji('tada')} Top Contributors & Repositories Last Week`)} ${formatEmoji('blob-clap')}`,
-            divider,
+          return {
+            text: [
+              divider,
+              `${formatBold(`${formatEmoji('tada')} Top Contributors & Repositories Last Week`)} ${formatEmoji('blob-clap')}`,
+              divider,
 
-            '\n',
+              '\n',
 
-            `${formatBold(`${formatEmoji('blobgamer')} Contributors`)}\n`,
+              `${formatBold(`${formatEmoji('blobgamer')} Contributors`)}\n`,
 
-            topUsers
-              .map(({ member, score, pullRequestCount, commentCount }, i) => {
-                const maxPointStringLength = `${Math.max(...topUsers.map((item) => item.score))}`.length;
-                const scoreString = `${score}`.padStart(maxPointStringLength, ' ');
-                const foundMember = members.find((m) => m.githubUsername === member);
-                const rankEmoji = rankEmojis[i];
+              topUsers
+                .map(({ member, score, pullRequestCount, commentCount }, i) => {
+                  const maxPointStringLength =
+                    `${Math.max(...topUsers.map((item) => item.score))}`.length;
+                  const scoreString = `${score}`.padStart(
+                    maxPointStringLength,
+                    ' ',
+                  );
+                  const foundMember = members.find(
+                    (m) => m.githubUsername === member,
+                  );
+                  const rankEmoji = rankEmojis[i];
 
-                if (rankEmoji === undefined) throw new Error('Rank emoji is not defined');
+                  if (rankEmoji === undefined)
+                    throw new Error('Rank emoji is not defined');
 
-                return `${rankEmoji} [${scoreString}p] ${foundMember !== undefined ? formatMemberMention(foundMember) : `@${member}`} (${pullRequestCount} pull requests, ${commentCount} comments)`;
-              })
-              .join('\n'),
+                  return `${rankEmoji} [${scoreString}p] ${foundMember !== undefined ? formatMemberMention(foundMember) : `@${member}`} (${pullRequestCount} pull requests, ${commentCount} comments)`;
+                })
+                .join('\n'),
 
-            '\n',
+              '\n',
 
-            `${formatBold(`${formatEmoji('github')} Top Repositories`)}\n`,
+              `${formatBold(`${formatEmoji('github')} Top Repositories`)}\n`,
 
-            topRepositories
-              .map(({ repository: { webUrl, name }, score, comments, pullRequests }, i) => {
-                const maxPointStringLength = `${Math.max(...topRepositories.map((item) => item.score))}`.length;
-                const scoreString = `${score}`.padStart(maxPointStringLength, ' ');
-                const rankEmoji = rankEmojis[i];
+              topRepositories
+                .map(
+                  (
+                    {
+                      repository: { webUrl, name },
+                      score,
+                      comments,
+                      pullRequests,
+                    },
+                    i,
+                  ) => {
+                    const maxPointStringLength =
+                      `${Math.max(...topRepositories.map((item) => item.score))}`
+                        .length;
+                    const scoreString = `${score}`.padStart(
+                      maxPointStringLength,
+                      ' ',
+                    );
+                    const rankEmoji = rankEmojis[i];
 
-                if (rankEmoji === undefined) throw new Error('Rank emoji is not defined');
+                    if (rankEmoji === undefined)
+                      throw new Error('Rank emoji is not defined');
 
-                return `${rankEmoji} [${scoreString}p] ${formatLink(formatBold(name), {
-                  url: webUrl,
-                })} (${pullRequests.length} pull requests, ${comments.length} comments)`;
-              })
-              .join('\n'),
-          ].join('\n'),
-        };
-      });
+                    return `${rankEmoji} [${scoreString}p] ${formatLink(
+                      formatBold(name),
+                      {
+                        url: webUrl,
+                      },
+                    )} (${pullRequests.length} pull requests, ${comments.length} comments)`;
+                  },
+                )
+                .join('\n'),
+            ].join('\n'),
+          };
+        },
+      );
     },
   };
 };

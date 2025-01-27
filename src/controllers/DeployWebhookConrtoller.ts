@@ -1,3 +1,3 @@
 export type DeployWebhookController = {
-  handle: (body: unknown) => Promise<unknown>;
+  handle: (body: unknown) => unknown;
 };

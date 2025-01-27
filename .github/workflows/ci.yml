@@ -16,7 +16,5 @@ jobs:
         run: bun install
       - name: Check Type
         run: bun tsc
-      - name: Check format
-        run: bun format
-      - name: Check lint
-        run: bun lint
+      - name: Check format & lint
+        run: bun check

@@ -1,4 +1,4 @@
-import { type Member } from '../entities/Member';
+import type { Member } from '../entities/Member';
 
 export type MessageHelper = {
   formatLink: (text: string, options: { url: string }) => string;
@@ -9,7 +9,10 @@ export type MessageHelper = {
   formatCodeBlock: (text: string) => string;
 };
 
-type MessageGetter = (helper: MessageHelper) => { text: string; options?: { ts?: string } };
+type MessageGetter = (helper: MessageHelper) => {
+  text: string;
+  options?: { ts?: string };
+};
 
 export type MessengerPresenter = {
   sendMessage: (getter: MessageGetter) => Promise<{ ts: string }>;

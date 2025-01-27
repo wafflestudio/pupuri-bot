@@ -13,20 +13,19 @@
     "start:server": "bun src/server.ts",
     "deploy:server": "./scripts/deploy.sh",
     "send:weekly-dashboard": "bun src/weekly-dashboard.ts",
-    "lint": "eslint ./src",
-    "format": "prettier . --check"
+    "check": "biome check .",
+    "fix": "biome check --fix ."
   },
   "dependencies": {
-    "octokit": "4.0.2",
-    "openai": "4.76.0"
+    "octokit": "4.1.0",
+    "openai": "4.80.1"
   },
   "devDependencies": {
-    "@types/bun": "1.1.14",
-    "@woohm402/eslint-config-base": "0.12.0",
-    "eslint": "9.16.0",
-    "knip": "5.39.2",
-    "prettier": "3.4.2",
-    "typescript": "5.7.2"
+    "@biomejs/biome": "1.9.4",
+    "@types/bun": "1.2.0",
+    "eslint": "9.19.0",
+    "knip": "5.43.5",
+    "typescript": "5.7.3"
   },
-  "packageManager": "bun@1.1.33"
+  "packageManager": "bun@1.2.0"
 }

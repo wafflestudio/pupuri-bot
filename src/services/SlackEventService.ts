@@ -1,5 +1,5 @@
-import { type SlackEvent } from '../entities/Slack';
-import { MessengerPresenter } from '../presenters/MessengerPresenter';
+import type { SlackEvent } from '../entities/Slack';
+import type { MessengerPresenter } from '../presenters/MessengerPresenter';
 
 type SlackEventService = {
   handleVerification: (body: { challenge: string }) => string;

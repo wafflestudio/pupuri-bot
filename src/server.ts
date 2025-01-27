@@ -1,4 +1,4 @@
-import { SlackEvent } from './entities/Slack';
+import type { SlackEvent } from './entities/Slack';
 import { implementGitHubDeployWebhookController } from './infrastructures/implementGitHubDeployWebhookController';
 import { implementMemberWaffleDotComRepository } from './infrastructures/implementMemberWaffleDotComRepository';
 import { implementOpenAiSummarizeRepository } from './infrastructures/implementOpenAiSummarizeRepository';
@@ -14,8 +14,10 @@ const openaiApiKey = process.env.OPENAI_API_KEY;
 
 if (slackAuthToken === undefined) throw new Error('Missing Slack Auth Token');
 if (slackBotToken === undefined) throw new Error('Missing Slack Bot Token');
-if (slackWatcherChannelId === undefined) throw new Error('Missing Slack Watcher Channel ID');
-if (deployWatcherChannelId === undefined) throw new Error('Missing Deploy Watcher Channel ID');
+if (slackWatcherChannelId === undefined)
+  throw new Error('Missing Slack Watcher Channel ID');
+if (deployWatcherChannelId === undefined)
+  throw new Error('Missing Deploy Watcher Channel ID');
 if (openaiApiKey === undefined) throw new Error('Missing OpenAI API Key');
 
 const PORT = 3000;
@@ -32,7 +34,9 @@ const deployWebhookController = implementGitHubDeployWebhookController({
       slackAuthToken,
       channelId: deployWatcherChannelId,
     }),
-    summarizeLLMRepository: implementOpenAiSummarizeRepository({ openaiApiKey }),
+    summarizeLLMRepository: implementOpenAiSummarizeRepository({
+      openaiApiKey,
+    }),
     memberRepository: implementMemberWaffleDotComRepository(),
   }),
 });
@@ -43,18 +47,31 @@ Bun.serve({
     const url = new URL(req.url);
     try {
       if (req.method === 'POST' && url.pathname === '/slack/action-endpoint') {
-        const body = (await req.json()) as { token: unknown; type: string; challenge: string; event: SlackEvent };
-        if (body.token !== slackBotToken) return new Response(null, { status: 403 });
+        const body = (await req.json()) as {
+          token: unknown;
+          type: string;
+          challenge: string;
+          event: SlackEvent;
+        };
+        if (body.token !== slackBotToken)
+          return new Response(null, { status: 403 });
         if (body.type === 'url_verification')
-          return new Response(slackService.handleVerification(body), { status: 200 });
+          return new Response(slackService.handleVerification(body), {
+            status: 200,
+          });
         await slackService.handleEvent(body.event);
         return new Response(null, { status: 200 });
-      } else if (req.method === 'POST' && url.pathname === '/github/webhook-endpoint') {
+      }
+
+      if (
+        req.method === 'POST' &&
+        url.pathname === '/github/webhook-endpoint'
+      ) {
         await deployWebhookController.handle(await req.json());
         return new Response(null, { status: 200 });
-      } else {
-        throw new Error();
       }
+
+      throw new Error('Not Found');
     } catch (_) {
       return new Response(null, { status: 500 });
     }

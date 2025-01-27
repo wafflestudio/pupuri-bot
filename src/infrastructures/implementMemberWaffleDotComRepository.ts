@@ -1,4 +1,4 @@
-import { Member } from '../entities/Member';
+import type { Member } from '../entities/Member';
 
 /*
  * API
@@ -9,12 +9,21 @@ export const implementMemberWaffleDotComRepository = (): {
 } => {
   return {
     getAllMembers: async () => {
-      const users = await fetch('https://wadot-api.wafflestudio.com/api/v1/users', {
-        method: 'GET',
-      }).then((res) => res.json() as Promise<{ github_id: string; slack_id: string }[]>);
+      const users = await fetch(
+        'https://wadot-api.wafflestudio.com/api/v1/users',
+        {
+          method: 'GET',
+        },
+      ).then(
+        (res) =>
+          res.json() as Promise<{ github_id: string; slack_id: string }[]>,
+      );
 
       return {
-        members: users.map((user) => ({ slackUserId: user.slack_id, githubUsername: user.github_id })),
+        members: users.map((user) => ({
+          slackUserId: user.slack_id,
+          githubUsername: user.github_id,
+        })),
       };
     },
   };
