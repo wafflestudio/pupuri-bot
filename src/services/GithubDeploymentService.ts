@@ -1,5 +1,5 @@
-import { Member } from '../entities/Member';
-import { type MessengerPresenter } from '../presenters/MessengerPresenter';
+import type { Member } from '../entities/Member';
+import type { MessengerPresenter } from '../presenters/MessengerPresenter';
 
 export type GithubDeploymentService = {
   handleCreateRelease: (body: {
@@ -34,7 +34,12 @@ export const implementDeploymentService = ({
   memberRepository,
 }: {
   messengerPresenter: MessengerPresenter;
-  summarizeLLMRepository: { summarizeReleaseNote: (content: string, options: { maxLen: number }) => Promise<string> };
+  summarizeLLMRepository: {
+    summarizeReleaseNote: (
+      content: string,
+      options: { maxLen: number },
+    ) => Promise<string>;
+  };
   memberRepository: { getAllMembers: () => Promise<{ members: Member[] }> };
 }): GithubDeploymentService => {
   return {
@@ -46,39 +51,62 @@ export const implementDeploymentService = ({
       releaseUrl,
       repository,
     }) => {
-      const summarized = await summarizeLLMRepository.summarizeReleaseNote(releaseNote, { maxLen: 100 });
+      const summarized = await summarizeLLMRepository.summarizeReleaseNote(
+        releaseNote,
+        { maxLen: 100 },
+      );
       const { members } = await memberRepository.getAllMembers();
 
-      const { ts } = await messengerPresenter.sendMessage(({ formatMemberMention, formatEmoji }) => {
-        const foundMember = members.find((m) => m.githubUsername === authorGithubUsername);
-        const authorText = foundMember !== undefined ? formatMemberMention(foundMember) : `@${authorGithubUsername}`;
-        const contributorsText =
-          otherContributors.length === 0
-            ? ''
-            : ` cc. ${otherContributors
-                .map((c) => {
-                  const foundContributor = members.find((m) => m.githubUsername === c);
-                  return foundContributor !== undefined ? formatMemberMention(foundContributor) : `@${c}`;
-                })
-                .join(', ')}`;
-        return {
-          text: [`${formatEmoji('rocket')} *${repository}/${tag}* ${authorText}${contributorsText}`, summarized].join(
-            '\n\n',
-          ),
-        };
-      });
+      const { ts } = await messengerPresenter.sendMessage(
+        ({ formatMemberMention, formatEmoji }) => {
+          const foundMember = members.find(
+            (m) => m.githubUsername === authorGithubUsername,
+          );
+          const authorText =
+            foundMember !== undefined
+              ? formatMemberMention(foundMember)
+              : `@${authorGithubUsername}`;
+          const contributorsText =
+            otherContributors.length === 0
+              ? ''
+              : ` cc. ${otherContributors
+                  .map((c) => {
+                    const foundContributor = members.find(
+                      (m) => m.githubUsername === c,
+                    );
+                    return foundContributor !== undefined
+                      ? formatMemberMention(foundContributor)
+                      : `@${c}`;
+                  })
+                  .join(', ')}`;
+          return {
+            text: [
+              `${formatEmoji('rocket')} *${repository}/${tag}* ${authorText}${contributorsText}`,
+              summarized,
+            ].join('\n\n'),
+          };
+        },
+      );
 
       identifierToSlackTs[toIdentifier({ tag, repository })] = ts;
 
-      await messengerPresenter.sendMessage(({ formatEmoji, formatCodeBlock, formatLink }) => ({
-        text: [
-          `${formatEmoji('memo')} ${formatLink('릴리즈 노트', { url: releaseUrl })}`,
-          formatCodeBlock(releaseNote),
-        ].join('\n\n'),
-        options: { ts },
-      }));
+      await messengerPresenter.sendMessage(
+        ({ formatEmoji, formatCodeBlock, formatLink }) => ({
+          text: [
+            `${formatEmoji('memo')} ${formatLink('릴리즈 노트', { url: releaseUrl })}`,
+            formatCodeBlock(releaseNote),
+          ].join('\n\n'),
+          options: { ts },
+        }),
+      );
     },
-    handleActionStart: async ({ workflowName, workflowId, workflowUrl, tag, repository }) => {
+    handleActionStart: async ({
+      workflowName,
+      workflowId,
+      workflowUrl,
+      tag,
+      repository,
+    }) => {
       if (!isDeployWorkflow(workflowName)) return;
 
       const ts = identifierToSlackTs[toIdentifier({ tag, repository })];
@@ -86,23 +114,32 @@ export const implementDeploymentService = ({
 
       await messengerPresenter.sendMessage(({ formatEmoji, formatLink }) => ({
         text: [
-          `${formatEmoji('wip')} deployment started ${formatEmoji('point_right')} ${formatLink(`${workflowId}`, {
-            url: workflowUrl,
-          })}`,
+          `${formatEmoji('wip')} deployment started ${formatEmoji('point_right')} ${formatLink(
+            `${workflowId}`,
+            {
+              url: workflowUrl,
+            },
+          )}`,
         ].join('\n'),
         options: { ts },
       }));
     },
-    handleActionComplete: async ({ workflowName, workflowId, workflowUrl, tag, repository }) => {
+    handleActionComplete: async ({
+      workflowName,
+      workflowId,
+      workflowUrl,
+      tag,
+      repository,
+    }) => {
       if (!isDeployWorkflow(workflowName)) return;
 
       const ts = identifierToSlackTs[toIdentifier({ tag, repository })];
       if (ts === undefined) return;
 
       await messengerPresenter.sendMessage(({ formatEmoji, formatLink }) => ({
-        text: [`${formatEmoji('tada')} deployment completed ${formatLink(`${workflowId}`, { url: workflowUrl })}`].join(
-          '\n',
-        ),
+        text: [
+          `${formatEmoji('tada')} deployment completed ${formatLink(`${workflowId}`, { url: workflowUrl })}`,
+        ].join('\n'),
         options: { ts },
       }));
 
@@ -111,5 +148,9 @@ export const implementDeploymentService = ({
   };
 };
 
-const toIdentifier = ({ tag, repository }: { repository: string; tag: string }) => `${repository}:${tag}`;
-const isDeployWorkflow = (workflowName: string) => workflowName.toLowerCase().includes('deploy');
+const toIdentifier = ({
+  tag,
+  repository,
+}: { repository: string; tag: string }) => `${repository}:${tag}`;
+const isDeployWorkflow = (workflowName: string) =>
+  workflowName.toLowerCase().includes('deploy');

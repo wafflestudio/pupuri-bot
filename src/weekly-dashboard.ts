@@ -9,9 +9,12 @@ const slackWeeklyChannelId = process.env.SLACK_WEEKLY_CHANNEL_ID;
 const githubOrganization = process.env.GITHUB_ORGANIZATION;
 
 if (slackAuthToken === undefined) throw new Error('Missing Slack Auth Token');
-if (githubAccessToken === undefined) throw new Error('Missing Github Access Token');
-if (slackWeeklyChannelId === undefined) throw new Error('Missing Slack Weekly Channel ID');
-if (githubOrganization === undefined) throw new Error('Missing Github Organization');
+if (githubAccessToken === undefined)
+  throw new Error('Missing Github Access Token');
+if (slackWeeklyChannelId === undefined)
+  throw new Error('Missing Slack Weekly Channel ID');
+if (githubOrganization === undefined)
+  throw new Error('Missing Github Organization');
 
 /**
 ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
@@ -23,11 +26,18 @@ if (githubOrganization === undefined) throw new Error('Missing Github Organizati
  */
 
 const dashboardService = implementDashboardService({
-  githubApiRepository: implementGithubOctokitRepository({ githubAuthToken: githubAccessToken }),
-  messengerPresenter: implementSlackPresenter({ slackAuthToken, channelId: slackWeeklyChannelId }),
+  githubApiRepository: implementGithubOctokitRepository({
+    githubAuthToken: githubAccessToken,
+  }),
+  messengerPresenter: implementSlackPresenter({
+    slackAuthToken,
+    channelId: slackWeeklyChannelId,
+  }),
   memberRepository: implementMemberWaffleDotComRepository(),
 });
 
-dashboardService.sendWeeklyDashboard(githubOrganization).catch((error: unknown) => {
-  console.error(error);
-});
+dashboardService
+  .sendWeeklyDashboard(githubOrganization)
+  .catch((error: unknown) => {
+    console.error(error);
+  });

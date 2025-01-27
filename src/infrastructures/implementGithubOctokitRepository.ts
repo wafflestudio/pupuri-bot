@@ -1,6 +1,6 @@
 import { Octokit } from 'octokit';
 
-import { implementDashboardService } from '../services/DashboardService';
+import type { implementDashboardService } from '../services/DashboardService';
 
 export const implementGithubOctokitRepository = ({
   githubAuthToken,
@@ -17,7 +17,9 @@ export const implementGithubOctokitRepository = ({
           sort: options?.sort,
           per_page: options?.perPage,
         })
-        .then((res) => res.data.map((d) => ({ name: d.name, webUrl: d.html_url }))),
+        .then((res) =>
+          res.data.map((d) => ({ name: d.name, webUrl: d.html_url })),
+        ),
 
     listRepositoryPullRequests: ({ organization, repository, options }) =>
       octokit.rest.pulls
@@ -47,7 +49,11 @@ export const implementGithubOctokitRepository = ({
           per_page: options?.perPage,
         })
         .then((res) =>
-          res.data.map((d) => ({ body: d.body, userGithubUsername: d.user.login, createdAt: new Date(d.created_at) })),
+          res.data.map((d) => ({
+            body: d.body,
+            userGithubUsername: d.user.login,
+            createdAt: new Date(d.created_at),
+          })),
         ),
   };
 };

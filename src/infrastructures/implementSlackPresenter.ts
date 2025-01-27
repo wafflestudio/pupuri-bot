@@ -1,4 +1,7 @@
-import { type MessageHelper, type MessengerPresenter } from '../presenters/MessengerPresenter';
+import type {
+  MessageHelper,
+  MessengerPresenter,
+} from '../presenters/MessengerPresenter';
 
 export const implementSlackPresenter = ({
   slackAuthToken,
@@ -8,17 +11,19 @@ export const implementSlackPresenter = ({
   channelId: string;
 }): MessengerPresenter => {
   return {
-    sendMessage: async (getter) => {
+    sendMessage: (getter) => {
       const { text, options } = getter(helpers);
       return postMessage({ channelId, slackAuthToken, text, options });
     },
   };
 };
 
-const escapeSymbols = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const escapeSymbols = (text: string) =>
+  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 const helpers: MessageHelper = {
-  formatLink: (text: string, options: { url: string }) => `<${options.url}|${escapeSymbols(text)}>`,
+  formatLink: (text: string, options: { url: string }) =>
+    `<${options.url}|${escapeSymbols(text)}>`,
   formatChannel: (channelId: string) => `<#${channelId}>`,
   formatEmoji: (emoji: string) => `:${emoji}:`,
   formatBold: (text: string) => `*${text}*`,
@@ -39,7 +44,10 @@ const postMessage = async ({
 }) => {
   const response = await fetch('https://slack.com/api/chat.postMessage', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${slackAuthToken}` },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${slackAuthToken}`,
+    },
     body: JSON.stringify({ channel: channelId, text, thread_ts: options?.ts }),
   });
   const data = (await response.json()) as unknown;

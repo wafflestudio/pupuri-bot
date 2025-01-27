@@ -1,13 +1,23 @@
-import { type DeployWebhookController } from '../controllers/DeployWebhookConrtoller';
-import { type GithubDeploymentService } from '../services/GithubDeploymentService';
+import type { DeployWebhookController } from '../controllers/DeployWebhookConrtoller';
+import type { GithubDeploymentService } from '../services/GithubDeploymentService';
 
 type ReleaseBody = {
-  release: { author: { login: string }; body: string; tag_name: string; html_url: string };
+  release: {
+    author: { login: string };
+    body: string;
+    tag_name: string;
+    html_url: string;
+  };
   repository: { name: string };
 };
 
 type WorkflowRunBody = {
-  workflow_run: { name: string; head_branch: string; id: number; html_url: string };
+  workflow_run: {
+    name: string;
+    head_branch: string;
+    id: number;
+    html_url: string;
+  };
   repository: { name: string };
 };
 
@@ -17,8 +27,9 @@ export const implementGitHubDeployWebhookController = ({
   deploymentService: GithubDeploymentService;
 }): DeployWebhookController => {
   return {
-    handle: async (body) => {
-      if (body === null || typeof body !== 'object' || !('action' in body)) throw new Error('400');
+    handle: (body) => {
+      if (body === null || typeof body !== 'object' || !('action' in body))
+        throw new Error('400');
 
       if ('release' in body && body.action === 'released') {
         const releaseBody = body as unknown as ReleaseBody;
