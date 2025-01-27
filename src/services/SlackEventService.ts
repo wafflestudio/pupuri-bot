@@ -128,7 +128,11 @@ export const implementSlackEventService = ({
               })),
             ),
           ]);
+
+          return;
         }
+        default:
+          console.debug(`Unhandled event type: ${event.type}`);
       }
     },
   };

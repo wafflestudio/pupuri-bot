@@ -18,7 +18,7 @@
       "suspicious": {
         "noConsole": {
           "options": {
-            "allow": ["error"]
+            "allow": ["error", "debug"]
           },
           "level": "error"
         },
