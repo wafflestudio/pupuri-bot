@@ -1,9 +1,7 @@
 name: deploy
 
 on:
-  push:
-    tags:
-      - pupuri-*
+  workflow_dispatch:
 
 jobs:
   deploy:
