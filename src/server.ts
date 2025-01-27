@@ -78,9 +78,7 @@ Bun.serve({
           return new Response(null, { status: 403 });
 
         if (body.type === 'url_verification')
-          return new Response(slackService.handleVerification(body), {
-            status: 200,
-          });
+          return new Response(body.challenge, { status: 200 });
 
         await slackService.handleEvent(body.event);
         return new Response(null, { status: 200 });

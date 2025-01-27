@@ -2,7 +2,6 @@ import type { AnyBlock, SlackEvent } from '@slack/web-api';
 import type { MessengerPresenter } from '../presenters/MessengerPresenter';
 
 type SlackEventService = {
-  handleVerification: (body: { challenge: string }) => string;
   handleEvent: (event: SlackEvent) => Promise<void>;
 };
 
@@ -41,7 +40,6 @@ export const implementSlackEventService = ({
   };
 }): SlackEventService => {
   return {
-    handleVerification: (body) => body.challenge,
     handleEvent: async (event) => {
       switch (event.type) {
         case 'channel_archive':
@@ -65,37 +63,31 @@ export const implementSlackEventService = ({
           }));
           break;
         case 'message': {
-          if (
-            !(
-              'message' in event &&
-              'user' in event.message &&
-              typeof event.message.user === 'string'
-            )
-          ) {
+          if (!('user' in event && typeof event.user === 'string')) {
             console.debug('message', JSON.stringify(event));
             return;
           }
 
-          const user = event.message.user as SlackID;
+          const user = event.user as SlackID;
 
-          const count = event.message.text?.match(/:waffle:/g)?.length ?? 0;
+          const count = event.text?.match(/:waffle:/g)?.length ?? 0;
           const targetUsers = (
-            (event.message.text?.match(/<@[A-Z0-9]+>/g) ?? []) as Mention[]
+            (event.text?.match(/<@[A-Z0-9]+>/g) ?? []) as Mention[]
           ).filter((m) => m !== slackIDToMention(user));
 
           if (count === 0 || targetUsers.length === 0) return;
 
           const href = (
             await messageRepository.getPermalink({
-              channel: event.message.channel,
-              ts: event.message.ts,
+              channel: event.channel,
+              ts: event.ts,
             })
           ).link;
 
           await Promise.all([
             ...[
               {
-                channel: event.message.user,
+                channel: event.user,
                 text: `*You Gave ${count} ${count === 1 ? 'Waffle' : 'Waffles'} to ${targetUsers.join(',')}!*`,
               },
               ...targetUsers.map((u) => ({
