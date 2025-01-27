@@ -33,14 +33,14 @@ const slackService = implementSlackEventService({
   waffleRepository: implementMongoAtlasWaffleRepository({ mongoDBUri }),
   messageRepository: {
     getPermalink: async ({ channel, ts }) =>
-      new WebClient(slackBotToken).chat
+      new WebClient(slackAuthToken).chat
         .getPermalink({ channel, message_ts: ts })
         .then((res) => {
           if (!res.permalink) throw new Error('Failed to get permalink');
           return { link: res.permalink };
         }),
     sendMessage: async ({ channel, text, blocks }) => {
-      await new WebClient(slackBotToken).chat.postMessage({
+      await new WebClient(slackAuthToken).chat.postMessage({
         channel,
         text,
         blocks,
