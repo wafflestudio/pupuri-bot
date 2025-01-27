@@ -22,6 +22,10 @@
 
 - 일주일간 가장 활발했던 레포지토리를 지정된 active 채널로 보냅니다.
 
+### heywaffle
+
+- https://cloud.mongodb.com/v2/67979f416121847ae5d10c2a#/overview
+
 ## setup
 
 먼저 [`bun`](https://bun.sh/) 이 설치되어 있어야 합니다.
@@ -37,6 +41,7 @@ DEPLOY_WATCHER_CHANNEL_ID=C051TJXA7UZ
 SLACK_WEEKLY_CHANNEL_ID=C051TJXA7UZ
 GITHUB_ORGANIZATION=wafflestudio
 OPENAI_API_KEY=sk-...
+MONGODB_URI=mongodb+srv://...
 ```
 
 서버를 띄우려면 아래와 같이 수행해주세요.
