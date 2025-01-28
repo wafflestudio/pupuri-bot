@@ -37,7 +37,7 @@
   },
   "formatter": {
     "indentStyle": "space",
-    "lineWidth": 80,
+    "lineWidth": 100,
     "formatWithErrors": true
   },
   "javascript": {

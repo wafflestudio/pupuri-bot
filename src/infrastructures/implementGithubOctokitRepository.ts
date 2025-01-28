@@ -17,9 +17,7 @@ export const implementGithubOctokitRepository = ({
           sort: options?.sort,
           per_page: options?.perPage,
         })
-        .then((res) =>
-          res.data.map((d) => ({ name: d.name, webUrl: d.html_url })),
-        ),
+        .then((res) => res.data.map((d) => ({ name: d.name, webUrl: d.html_url }))),
 
     listRepositoryPullRequests: ({ organization, repository, options }) =>
       octokit.rest.pulls

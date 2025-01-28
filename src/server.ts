@@ -16,10 +16,8 @@ const mongoDBUri = process.env.MONGODB_URI;
 
 if (slackAuthToken === undefined) throw new Error('Missing Slack Auth Token');
 if (slackBotToken === undefined) throw new Error('Missing Slack Bot Token');
-if (slackWatcherChannelId === undefined)
-  throw new Error('Missing Slack Watcher Channel ID');
-if (deployWatcherChannelId === undefined)
-  throw new Error('Missing Deploy Watcher Channel ID');
+if (slackWatcherChannelId === undefined) throw new Error('Missing Slack Watcher Channel ID');
+if (deployWatcherChannelId === undefined) throw new Error('Missing Deploy Watcher Channel ID');
 if (openaiApiKey === undefined) throw new Error('Missing OpenAI API Key');
 if (mongoDBUri === undefined) throw new Error('Missing MongoDB URI');
 
@@ -33,12 +31,10 @@ const slackService = implementSlackEventService({
   waffleRepository: implementMongoAtlasWaffleRepository({ mongoDBUri }),
   messageRepository: {
     getPermalink: async ({ channel, ts }) =>
-      new WebClient(slackAuthToken).chat
-        .getPermalink({ channel, message_ts: ts })
-        .then((res) => {
-          if (!res.permalink) throw new Error('Failed to get permalink');
-          return { link: res.permalink };
-        }),
+      new WebClient(slackAuthToken).chat.getPermalink({ channel, message_ts: ts }).then((res) => {
+        if (!res.permalink) throw new Error('Failed to get permalink');
+        return { link: res.permalink };
+      }),
     sendMessage: async ({ channel, text, blocks }) => {
       await new WebClient(slackAuthToken).chat.postMessage({
         channel,
@@ -66,6 +62,9 @@ Bun.serve({
   async fetch(req) {
     const url = new URL(req.url);
     try {
+      if (req.method === 'GET' && url.pathname === '/health-check')
+        return new Response('ok', { status: 200 });
+
       if (req.method === 'POST' && url.pathname === '/slack/action-endpoint') {
         const body = (await req.json()) as {
           token: unknown;
@@ -74,25 +73,20 @@ Bun.serve({
           event: SlackEvent;
         };
 
-        if (body.token !== slackBotToken)
-          return new Response(null, { status: 403 });
+        if (body.token !== slackBotToken) return new Response(null, { status: 403 });
 
-        if (body.type === 'url_verification')
-          return new Response(body.challenge, { status: 200 });
+        if (body.type === 'url_verification') return new Response(body.challenge, { status: 200 });
 
         await slackService.handleEvent(body.event);
         return new Response(null, { status: 200 });
       }
 
-      if (
-        req.method === 'POST' &&
-        url.pathname === '/github/webhook-endpoint'
-      ) {
+      if (req.method === 'POST' && url.pathname === '/github/webhook-endpoint') {
         await deployWebhookController.handle(await req.json());
         return new Response(null, { status: 200 });
       }
 
-      throw new Error('Not Found');
+      return new Response(null, { status: 404 });
     } catch (_) {
       console.error(_);
       return new Response(null, { status: 500 });

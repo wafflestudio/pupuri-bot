@@ -28,8 +28,7 @@ export const implementGitHubDeployWebhookController = ({
 }): DeployWebhookController => {
   return {
     handle: (body) => {
-      if (body === null || typeof body !== 'object' || !('action' in body))
-        throw new Error('400');
+      if (body === null || typeof body !== 'object' || !('action' in body)) throw new Error('400');
 
       if ('release' in body && body.action === 'released') {
         const releaseBody = body as unknown as ReleaseBody;
