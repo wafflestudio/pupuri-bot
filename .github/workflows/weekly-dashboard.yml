@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.1.26
+          bun-version: 1.2.0
 
       # cron job을 실행합니다.
       - name: run script
