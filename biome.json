@@ -8,6 +8,9 @@
   "linter": {
     "rules": {
       "all": true,
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "off"
+      },
       "correctness": {
         "noUndeclaredDependencies": "off",
         "useImportExtensions": "off"
