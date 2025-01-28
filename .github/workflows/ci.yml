@@ -18,3 +18,5 @@ jobs:
         run: bun tsc
       - name: Check format & lint
         run: bun check
+      - name: Test
+        run: bun test
