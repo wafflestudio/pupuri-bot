@@ -10,7 +10,8 @@
   "private": false,
   "scripts": {
     "dev:server": "bun src/server.ts --watch",
-    "start:server": "bun src/server.ts",
+    "build:server": "bun build src/server.ts --outdir dist --minify --target bun",
+    "start:server": "bun dist/server.js",
     "deploy:server": "./scripts/deploy.sh",
     "send:weekly-dashboard": "bun src/weekly-dashboard.ts",
     "check": "biome check .",

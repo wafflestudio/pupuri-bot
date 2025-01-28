@@ -1,4 +1,12 @@
-FROM oven/bun:1.2.0-slim
+FROM oven/bun:1.2.0-slim as builder
+
+WORKDIR /app
+
+COPY . .
+RUN bun install
+RUN bun build:server
+
+FROM oven/bun:1.2.0-slim as runner
 
 WORKDIR /app
 
@@ -9,9 +17,8 @@ ARG DEPLOY_WATCHER_CHANNEL_ID
 ARG OPENAI_API_KEY
 ARG MONGODB_URI
 
-COPY package.json bunfig.toml bun.lock ./
-COPY src ./src
-RUN bun install --production
+COPY --from=builder /app/dist /app/dist
+COPY --from=builder /app/package.json /app/package.json
 
 RUN echo "SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}" >> .env.local
 RUN echo "SLACK_AUTH_TOKEN=${SLACK_AUTH_TOKEN}" >> .env.local
