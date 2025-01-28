@@ -1,11 +1,12 @@
 import type { AnyBlock, SlackEvent } from '@slack/web-api';
+import type { SlackID } from '../entities/Slack';
+import type { Log } from '../entities/Waffle';
 import type { MessengerPresenter } from '../presenters/MessengerPresenter';
 
 type SlackEventService = {
   handleEvent: (event: SlackEvent) => Promise<void>;
 };
 
-type SlackID = `U${string}`;
 type Mention = `<@${SlackID}>`;
 const slackIDToMention = (id: SlackID): Mention => `<@${id}>`;
 const mentionToSlackID = (mention: Mention): SlackID => mention.slice(2, -1) as SlackID;
@@ -17,26 +18,10 @@ export const implementSlackEventService = ({
 }: {
   messengerPresenter: MessengerPresenter;
   messageRepository: {
-    getPermalink: (_: { channel: string; ts: string }) => Promise<{
-      link: string;
-    }>;
-    sendMessage: (_: {
-      channel: string;
-      text: string;
-      blocks: AnyBlock[];
-    }) => Promise<void>;
+    getPermalink: (_: { channel: string; ts: string }) => Promise<{ link: string }>;
+    sendMessage: (_: { channel: string; text: string; blocks: AnyBlock[] }) => Promise<void>;
   };
-  waffleRepository: {
-    insert: (
-      _: {
-        from: SlackID;
-        to: SlackID;
-        count: number;
-        href: string;
-        date: Date;
-      }[],
-    ) => Promise<void>;
-  };
+  waffleRepository: { insert: (_: Log[]) => Promise<void> };
 }): SlackEventService => {
   return {
     handleEvent: async (event) => {

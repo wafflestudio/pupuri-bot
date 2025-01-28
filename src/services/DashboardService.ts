@@ -1,7 +1,8 @@
 import type { AnyBlock } from '@slack/web-api';
 import type { Member } from '../entities/Member';
 import { getScore } from '../entities/Score';
-import { Emoji } from '../entities/Slack';
+import { Emoji, type SlackID } from '../entities/Slack';
+import type { Log } from '../entities/Waffle';
 
 type DashboardService = {
   sendWeeklyDashboard: (organization: string) => Promise<void>;
@@ -11,6 +12,7 @@ export const implementDashboardService = ({
   githubApiRepository,
   messageRepository,
   memberRepository,
+  waffleRepository,
 }: {
   memberRepository: { getAllMembers: () => Promise<{ members: Member[] }> };
   githubApiRepository: {
@@ -37,6 +39,9 @@ export const implementDashboardService = ({
   messageRepository: {
     sendMessage: (_: { text: string; blocks: AnyBlock[] }) => Promise<void>;
   };
+  waffleRepository: {
+    listLogs: (_: { from: Date; to: Date }) => Promise<{ logs: Log[] }>;
+  };
 }): DashboardService => {
   return {
     sendWeeklyDashboard: async (organization: string) => {
@@ -46,6 +51,7 @@ export const implementDashboardService = ({
         organization,
         options: { sort: 'pushed', perPage: 30 },
       });
+      const logs = await waffleRepository.listLogs({ from: aWeekAgo, to: new Date() });
       const repoWithDetails = (
         await Promise.all(
           repos.slice(0, 3).map(async (repo) => {
@@ -85,8 +91,7 @@ export const implementDashboardService = ({
         )
       ).flat();
 
-      const topUserLength = 3;
-      const topRepositoriesLength = 3;
+      const topLength = 3;
 
       const topUsers = Object.entries(
         repoWithDetails
@@ -125,7 +130,7 @@ export const implementDashboardService = ({
           score: getScore({ pullRequestCount, commentCount }),
         }))
         .sort((a, b) => b.score - a.score)
-        .slice(0, topUserLength);
+        .slice(0, topLength);
 
       const topRepositories = repoWithDetails
         .map((r) => ({
@@ -136,9 +141,22 @@ export const implementDashboardService = ({
           }),
         }))
         .sort((a, b) => b.score - a.score)
-        .slice(0, topRepositoriesLength);
+        .slice(0, topLength);
 
-      const divider = '---------------------------------------------';
+      const topWaffles = logs.logs
+        .reduce((acc: { slackId: SlackID; gives: number; takes: number }[], cur) => {
+          const init = (slackId: SlackID) => ({ slackId, gives: 0, takes: 0 });
+          const giveData = acc.find((a) => a.slackId === cur.from) ?? init(cur.from);
+          const takeData = acc.find((a) => a.slackId === cur.to) ?? init(cur.to);
+
+          return [
+            ...acc.filter((a) => a.slackId !== cur.from && a.slackId !== cur.to),
+            { ...giveData, gives: giveData.gives + cur.count },
+            { ...takeData, takes: takeData.takes + cur.count },
+          ];
+        }, [])
+        .toSorted((a, b) => b.gives + b.takes - (a.gives + a.takes))
+        .slice(0, topLength);
 
       const formatBold = (text: string) => `*${text}*`;
       const formatLink = (text: string, { url }: { url: string }) => `<${url}|${text}>`;
@@ -151,7 +169,7 @@ export const implementDashboardService = ({
       ];
 
       await messageRepository.sendMessage({
-        text: `${divider}\n${Emoji.tada} 지난 주 통계 ${Emoji['blob-clap']}\n${divider}`,
+        text: `${Emoji.tada} 지난 주 통계 ${Emoji['blob-clap']}`,
         blocks: [
           {
             type: 'header',
@@ -162,15 +180,15 @@ export const implementDashboardService = ({
             },
           },
           { type: 'divider' },
-          { type: 'section', text: { type: 'mrkdwn', text: `${Emoji.blobgamer} *Contributors*` } },
-          ...topUsers.map(({ member, score, pullRequestCount, commentCount }, i) => {
-            const foundMember = members.find((m) => m.githubUsername === member);
-            const rankEmoji = rankEmojis[i];
-            if (rankEmoji === undefined) throw new Error('Rank emoji is not defined');
+          { type: 'section', text: { type: 'mrkdwn', text: `*Contributors* ${Emoji.blobgamer}` } },
+          {
+            type: 'section',
+            fields: topUsers.flatMap(({ member, score, pullRequestCount, commentCount }, i) => {
+              const foundMember = members.find((m) => m.githubUsername === member);
+              const rankEmoji = rankEmojis[i];
+              if (rankEmoji === undefined) throw new Error('Rank emoji is not defined');
 
-            return {
-              type: 'section',
-              fields: [
+              return [
                 {
                   type: 'mrkdwn',
                   text: `${rankEmoji} ${foundMember !== undefined ? formatMemberMention(foundMember) : `@${member}`}`,
@@ -179,19 +197,19 @@ export const implementDashboardService = ({
                   type: 'mrkdwn',
                   text: `*${score}p* (${pullRequestCount} PR, ${commentCount} comments)`,
                 },
-              ],
-            };
-          }),
+              ];
+            }),
+          },
           { type: 'divider' },
-          { type: 'section', text: { type: 'mrkdwn', text: `${Emoji.github} *Top Repositories*` } },
-          ...topRepositories.map(
-            ({ repository: { webUrl, name }, score, comments, pullRequests }, i) => {
-              const rankEmoji = rankEmojis[i];
-              if (rankEmoji === undefined) throw new Error('Rank emoji is not defined');
+          { type: 'section', text: { type: 'mrkdwn', text: `*Top Repositories* ${Emoji.github}` } },
+          {
+            type: 'section',
+            fields: topRepositories.flatMap(
+              ({ repository: { webUrl, name }, score, comments, pullRequests }, i) => {
+                const rankEmoji = rankEmojis[i];
+                if (rankEmoji === undefined) throw new Error('Rank emoji is not defined');
 
-              return {
-                type: 'section',
-                fields: [
+                return [
                   {
                     type: 'mrkdwn',
                     text: `${rankEmoji} ${formatLink(formatBold(name), { url: webUrl })}`,
@@ -200,10 +218,31 @@ export const implementDashboardService = ({
                     type: 'mrkdwn',
                     text: `*${score}p* (${pullRequests.length} PR, ${comments.length} comments)`,
                   },
-                ],
-              };
-            },
-          ),
+                ];
+              },
+            ),
+          },
+          { type: 'divider' },
+          { type: 'section', text: { type: 'mrkdwn', text: `*Top Waffles* ${Emoji.waffle} ` } },
+          {
+            type: 'section',
+            fields: topWaffles.flatMap(({ slackId, gives, takes }, i) => {
+              const foundMember = members.find((m) => m.slackUserId === slackId);
+              const rankEmoji = rankEmojis[i];
+              if (rankEmoji === undefined) throw new Error('Rank emoji is not defined');
+
+              return [
+                {
+                  type: 'mrkdwn',
+                  text: `${rankEmoji} ${foundMember !== undefined ? formatMemberMention(foundMember) : `@${slackId}`}`,
+                },
+                {
+                  type: 'mrkdwn',
+                  text: `*${gives} given, ${takes} received*`,
+                },
+              ];
+            }),
+          },
         ],
       });
     },

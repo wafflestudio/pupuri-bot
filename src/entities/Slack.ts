@@ -8,4 +8,7 @@ export enum Emoji {
   'blob-clap' = ':blob-clap:',
   blobgamer = ':blobgamer:',
   github = ':github:',
+  waffle = ':waffle:',
 }
+
+export type SlackID = `U${string}`;

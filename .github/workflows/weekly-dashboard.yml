@@ -22,4 +22,5 @@ jobs:
           SLACK_AUTH_TOKEN=${{ secrets.SLACK_AUTH_TOKEN }} \
           GHP_ACCESS_TOKEN=${{ secrets.GHP_ACCESS_TOKEN }} \
           GITHUB_ORGANIZATION=wafflestudio \
+          MONGODB_URI=${{ secrets.MONGODB_URI }} \
             bun send:weekly-dashboard
