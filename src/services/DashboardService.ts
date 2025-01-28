@@ -1,6 +1,7 @@
+import type { AnyBlock } from '@slack/web-api';
 import type { Member } from '../entities/Member';
 import { getScore } from '../entities/Score';
-import type { MessengerPresenter } from '../presenters/MessengerPresenter';
+import { Emoji } from '../entities/Slack';
 
 type DashboardService = {
   sendWeeklyDashboard: (organization: string) => Promise<void>;
@@ -8,7 +9,7 @@ type DashboardService = {
 
 export const implementDashboardService = ({
   githubApiRepository,
-  messengerPresenter,
+  messageRepository,
   memberRepository,
 }: {
   memberRepository: { getAllMembers: () => Promise<{ members: Member[] }> };
@@ -26,16 +27,16 @@ export const implementDashboardService = ({
         state?: 'closed';
         direction?: 'desc';
       };
-    }) => Promise<
-      { assigneeGithubUsername: string | null; mergedAt: Date | null }[]
-    >; // 최근 업데이트된 100개만
+    }) => Promise<{ assigneeGithubUsername: string | null; mergedAt: Date | null }[]>; // 최근 업데이트된 100개만
     listRepositoryComments: (args: {
       organization: string;
       repository: string;
       options?: { perPage?: number; sort?: 'created_at'; direction?: 'desc' };
     }) => Promise<{ userGithubUsername: string; createdAt: Date }[]>;
   };
-  messengerPresenter: MessengerPresenter;
+  messageRepository: {
+    sendMessage: (_: { text: string; blocks: AnyBlock[] }) => Promise<void>;
+  };
 }): DashboardService => {
   return {
     sendWeeklyDashboard: async (organization: string) => {
@@ -47,7 +48,7 @@ export const implementDashboardService = ({
       });
       const repoWithDetails = (
         await Promise.all(
-          repos.map(async (repo) => {
+          repos.slice(0, 3).map(async (repo) => {
             const recentMergedPullRequests = (
               await githubApiRepository.listRepositoryPullRequests({
                 organization,
@@ -99,17 +100,15 @@ export const implementDashboardService = ({
               memberGithubUsername: c.userGithubUsername,
             })),
           ])
-          .reduce<
-            Record<string, { pullRequestCount: number; commentCount: number }>
-          >(
+          .reduce<Record<string, { pullRequestCount: number; commentCount: number }>>(
             (acc, item) =>
               item.memberGithubUsername !== null
                 ? {
                     ...acc,
                     [item.memberGithubUsername]: {
                       pullRequestCount:
-                        (acc[item.memberGithubUsername]?.pullRequestCount ??
-                          0) + (item.type === 'pullRequest' ? 1 : 0),
+                        (acc[item.memberGithubUsername]?.pullRequestCount ?? 0) +
+                        (item.type === 'pullRequest' ? 1 : 0),
                       commentCount:
                         (acc[item.memberGithubUsername]?.commentCount ?? 0) +
                         (item.type === 'comment' ? 1 : 0),
@@ -141,86 +140,72 @@ export const implementDashboardService = ({
 
       const divider = '---------------------------------------------';
 
-      await messengerPresenter.sendMessage(
-        ({ formatEmoji, formatMemberMention, formatBold, formatLink }) => {
-          const rankEmojis = [
-            formatEmoji('first_place_medal'),
-            formatEmoji('second_place_medal'),
-            formatEmoji('third_place_medal'),
-            formatEmoji('four'),
-            formatEmoji('five'),
-          ];
+      const formatBold = (text: string) => `*${text}*`;
+      const formatLink = (text: string, { url }: { url: string }) => `<${url}|${text}>`;
+      const formatMemberMention = (member: Member) => `<@${member.slackUserId}>`;
 
-          return {
-            text: [
-              divider,
-              `${formatBold(`${formatEmoji('tada')} Top Contributors & Repositories Last Week`)} ${formatEmoji('blob-clap')}`,
-              divider,
+      const rankEmojis = [
+        Emoji.first_place_medal,
+        Emoji.second_place_medal,
+        Emoji.third_place_medal,
+      ];
 
-              '\n',
+      await messageRepository.sendMessage({
+        text: `${divider}\n${Emoji.tada} 지난 주 통계 ${Emoji['blob-clap']}\n${divider}`,
+        blocks: [
+          {
+            type: 'header',
+            text: {
+              type: 'plain_text',
+              text: `${Emoji.tada} 지난 주 통계 ${Emoji['blob-clap']}`,
+              emoji: true,
+            },
+          },
+          { type: 'divider' },
+          { type: 'section', text: { type: 'mrkdwn', text: `${Emoji.blobgamer} *Contributors*` } },
+          ...topUsers.map(({ member, score, pullRequestCount, commentCount }, i) => {
+            const foundMember = members.find((m) => m.githubUsername === member);
+            const rankEmoji = rankEmojis[i];
+            if (rankEmoji === undefined) throw new Error('Rank emoji is not defined');
 
-              `${formatBold(`${formatEmoji('blobgamer')} Contributors`)}\n`,
+            return {
+              type: 'section',
+              fields: [
+                {
+                  type: 'mrkdwn',
+                  text: `${rankEmoji} ${foundMember !== undefined ? formatMemberMention(foundMember) : `@${member}`}`,
+                },
+                {
+                  type: 'mrkdwn',
+                  text: `*${score}p* (${pullRequestCount} PR, ${commentCount} comments)`,
+                },
+              ],
+            };
+          }),
+          { type: 'divider' },
+          { type: 'section', text: { type: 'mrkdwn', text: `${Emoji.github} *Top Repositories*` } },
+          ...topRepositories.map(
+            ({ repository: { webUrl, name }, score, comments, pullRequests }, i) => {
+              const rankEmoji = rankEmojis[i];
+              if (rankEmoji === undefined) throw new Error('Rank emoji is not defined');
 
-              topUsers
-                .map(({ member, score, pullRequestCount, commentCount }, i) => {
-                  const maxPointStringLength =
-                    `${Math.max(...topUsers.map((item) => item.score))}`.length;
-                  const scoreString = `${score}`.padStart(
-                    maxPointStringLength,
-                    ' ',
-                  );
-                  const foundMember = members.find(
-                    (m) => m.githubUsername === member,
-                  );
-                  const rankEmoji = rankEmojis[i];
-
-                  if (rankEmoji === undefined)
-                    throw new Error('Rank emoji is not defined');
-
-                  return `${rankEmoji} [${scoreString}p] ${foundMember !== undefined ? formatMemberMention(foundMember) : `@${member}`} (${pullRequestCount} pull requests, ${commentCount} comments)`;
-                })
-                .join('\n'),
-
-              '\n',
-
-              `${formatBold(`${formatEmoji('github')} Top Repositories`)}\n`,
-
-              topRepositories
-                .map(
-                  (
-                    {
-                      repository: { webUrl, name },
-                      score,
-                      comments,
-                      pullRequests,
-                    },
-                    i,
-                  ) => {
-                    const maxPointStringLength =
-                      `${Math.max(...topRepositories.map((item) => item.score))}`
-                        .length;
-                    const scoreString = `${score}`.padStart(
-                      maxPointStringLength,
-                      ' ',
-                    );
-                    const rankEmoji = rankEmojis[i];
-
-                    if (rankEmoji === undefined)
-                      throw new Error('Rank emoji is not defined');
-
-                    return `${rankEmoji} [${scoreString}p] ${formatLink(
-                      formatBold(name),
-                      {
-                        url: webUrl,
-                      },
-                    )} (${pullRequests.length} pull requests, ${comments.length} comments)`;
+              return {
+                type: 'section',
+                fields: [
+                  {
+                    type: 'mrkdwn',
+                    text: `${rankEmoji} ${formatLink(formatBold(name), { url: webUrl })}`,
                   },
-                )
-                .join('\n'),
-            ].join('\n'),
-          };
-        },
-      );
+                  {
+                    type: 'mrkdwn',
+                    text: `*${score}p* (${pullRequests.length} PR, ${comments.length} comments)`,
+                  },
+                ],
+              };
+            },
+          ),
+        ],
+      });
     },
   };
 };

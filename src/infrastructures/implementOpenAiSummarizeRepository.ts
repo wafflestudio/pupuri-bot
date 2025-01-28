@@ -6,9 +6,7 @@ export const implementOpenAiSummarizeRepository = ({
   openaiApiKey,
 }: {
   openaiApiKey: string;
-}): Parameters<
-  typeof implementDeploymentService
->[0]['summarizeLLMRepository'] => {
+}): Parameters<typeof implementDeploymentService>[0]['summarizeLLMRepository'] => {
   return {
     summarizeReleaseNote: async (content, { maxLen }) => {
       const openai = new OpenAI({ apiKey: openaiApiKey });

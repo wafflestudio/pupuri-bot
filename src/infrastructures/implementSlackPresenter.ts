@@ -1,7 +1,4 @@
-import type {
-  MessageHelper,
-  MessengerPresenter,
-} from '../presenters/MessengerPresenter';
+import type { MessageHelper, MessengerPresenter } from '../presenters/MessengerPresenter';
 
 export const implementSlackPresenter = ({
   slackAuthToken,
@@ -22,8 +19,7 @@ const escapeSymbols = (text: string) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 const helpers: MessageHelper = {
-  formatLink: (text: string, options: { url: string }) =>
-    `<${options.url}|${escapeSymbols(text)}>`,
+  formatLink: (text: string, options: { url: string }) => `<${options.url}|${escapeSymbols(text)}>`,
   formatChannel: (channelId: string) => `<#${channelId}>`,
   formatEmoji: (emoji: string) => `:${emoji}:`,
   formatBold: (text: string) => `*${text}*`,

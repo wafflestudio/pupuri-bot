@@ -8,8 +8,7 @@ type SlackEventService = {
 type SlackID = `U${string}`;
 type Mention = `<@${SlackID}>`;
 const slackIDToMention = (id: SlackID): Mention => `<@${id}>`;
-const mentionToSlackID = (mention: Mention): SlackID =>
-  mention.slice(2, -1) as SlackID;
+const mentionToSlackID = (mention: Mention): SlackID => mention.slice(2, -1) as SlackID;
 
 export const implementSlackEventService = ({
   messengerPresenter,
@@ -63,13 +62,7 @@ export const implementSlackEventService = ({
           }));
           break;
         case 'message': {
-          if (
-            !(
-              'user' in event &&
-              typeof event.user === 'string' &&
-              event.subtype === undefined
-            )
-          ) {
+          if (!('user' in event && typeof event.user === 'string' && event.subtype === undefined)) {
             console.debug('skip message', JSON.stringify(event));
             return;
           }
@@ -77,9 +70,9 @@ export const implementSlackEventService = ({
           const user = event.user as SlackID;
 
           const count = event.text?.match(/:waffle:/g)?.length ?? 0;
-          const targetUsers = (
-            (event.text?.match(/<@[A-Z0-9]+>/g) ?? []) as Mention[]
-          ).filter((m) => m !== slackIDToMention(user));
+          const targetUsers = ((event.text?.match(/<@[A-Z0-9]+>/g) ?? []) as Mention[]).filter(
+            (m) => m !== slackIDToMention(user),
+          );
 
           if (count === 0 || targetUsers.length === 0) return;
 
