@@ -54,7 +54,7 @@ export const implementDashboardService = ({
       const logs = await waffleRepository.listLogs({ from: aWeekAgo, to: new Date() });
       const repoWithDetails = (
         await Promise.all(
-          repos.slice(0, 3).map(async (repo) => {
+          repos.map(async (repo) => {
             const recentMergedPullRequests = (
               await githubApiRepository.listRepositoryPullRequests({
                 organization,
