@@ -8,17 +8,15 @@ export const implementMongoAtlasWaffleRepository = ({
   mongoDBUri,
 }: { mongoDBUri: string }): Parameters<typeof implementSlackEventService>[0]['waffleRepository'] &
   Parameters<typeof implementDashboardService>[0]['waffleRepository'] => {
-  const client = new MongoClient(mongoDBUri, {
-    serverApi: ServerApiVersion.v1,
-  });
-
   return {
     insert: async (records) => {
+      const client = new MongoClient(mongoDBUri, { serverApi: ServerApiVersion.v1 });
       await client.connect();
       await client.db('waffle').collection('logs').insertMany(records);
       await client.close();
     },
     listLogs: async ({ from, to }) => {
+      const client = new MongoClient(mongoDBUri, { serverApi: ServerApiVersion.v1 });
       await client.connect();
       const logs = await client
         .db('waffle')
