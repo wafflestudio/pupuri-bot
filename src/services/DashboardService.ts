@@ -183,68 +183,80 @@ export const implementDashboardService = ({
           { type: 'section', text: { type: 'mrkdwn', text: `*Contributors* ${Emoji.blobgamer}` } },
           {
             type: 'section',
-            fields: topUsers.flatMap(({ member, score, pullRequestCount, commentCount }, i) => {
-              const foundMember = members.find((m) => m.githubUsername === member);
-              const rankEmoji = rankEmojis[i];
-              if (rankEmoji === undefined) throw new Error('Rank emoji is not defined');
-
-              return [
-                {
-                  type: 'mrkdwn',
-                  text: `${rankEmoji} ${foundMember !== undefined ? formatMemberMention(foundMember) : `@${member}`}`,
-                },
-                {
-                  type: 'mrkdwn',
-                  text: `*${score}p* (${pullRequestCount} PR, ${commentCount} comments)`,
-                },
-              ];
-            }),
-          },
-          { type: 'divider' },
-          { type: 'section', text: { type: 'mrkdwn', text: `*Top Repositories* ${Emoji.github}` } },
-          {
-            type: 'section',
-            fields: topRepositories.flatMap(
-              ({ repository: { webUrl, name }, score, comments, pullRequests }, i) => {
+            fields: guard(
+              topUsers.flatMap(({ member, score, pullRequestCount, commentCount }, i) => {
+                const foundMember = members.find((m) => m.githubUsername === member);
                 const rankEmoji = rankEmojis[i];
                 if (rankEmoji === undefined) throw new Error('Rank emoji is not defined');
 
                 return [
                   {
                     type: 'mrkdwn',
-                    text: `${rankEmoji} ${formatLink(formatBold(name), { url: webUrl })}`,
+                    text: `${rankEmoji} ${foundMember !== undefined ? formatMemberMention(foundMember) : `@${member}`}`,
                   },
                   {
                     type: 'mrkdwn',
-                    text: `*${score}p* (${pullRequests.length} PR, ${comments.length} comments)`,
+                    text: `*${score}p* (${pullRequestCount} PR, ${commentCount} comments)`,
                   },
                 ];
-              },
+              }),
             ),
           },
           { type: 'divider' },
-          { type: 'section', text: { type: 'mrkdwn', text: `*Top Waffles* ${Emoji.waffle} ` } },
+          { type: 'section', text: { type: 'mrkdwn', text: `*Top Repositories* ${Emoji.github}` } },
           {
             type: 'section',
-            fields: topWaffles.flatMap(({ slackId, gives, takes }, i) => {
-              const foundMember = members.find((m) => m.slackUserId === slackId);
-              const rankEmoji = rankEmojis[i];
-              if (rankEmoji === undefined) throw new Error('Rank emoji is not defined');
+            fields: guard(
+              topRepositories.flatMap(
+                ({ repository: { webUrl, name }, score, comments, pullRequests }, i) => {
+                  const rankEmoji = rankEmojis[i];
+                  if (rankEmoji === undefined) throw new Error('Rank emoji is not defined');
 
-              return [
-                {
-                  type: 'mrkdwn',
-                  text: `${rankEmoji} ${foundMember !== undefined ? formatMemberMention(foundMember) : `@${slackId}`}`,
+                  return [
+                    {
+                      type: 'mrkdwn',
+                      text: `${rankEmoji} ${formatLink(formatBold(name), { url: webUrl })}`,
+                    },
+                    {
+                      type: 'mrkdwn',
+                      text: `*${score}p* (${pullRequests.length} PR, ${comments.length} comments)`,
+                    },
+                  ];
                 },
-                {
-                  type: 'mrkdwn',
-                  text: `*${gives} given, ${takes} received*`,
-                },
-              ];
-            }),
+              ),
+            ),
+          },
+          { type: 'divider' },
+          {
+            type: 'section',
+            text: { type: 'mrkdwn' as const, text: `*Top Waffles* ${Emoji.waffle} ` },
+          },
+          {
+            type: 'section',
+            fields: guard(
+              topWaffles.flatMap(({ slackId, gives, takes }, i) => {
+                const foundMember = members.find((m) => m.slackUserId === slackId);
+                const rankEmoji = rankEmojis[i];
+                if (rankEmoji === undefined) throw new Error('Rank emoji is not defined');
+
+                return [
+                  {
+                    type: 'mrkdwn',
+                    text: `${rankEmoji} ${foundMember !== undefined ? formatMemberMention(foundMember) : `@${slackId}`}`,
+                  },
+                  {
+                    type: 'mrkdwn',
+                    text: `*${gives} given, ${takes} received*`,
+                  },
+                ];
+              }),
+            ),
           },
         ],
       });
     },
   };
 };
+
+const guard = <T>(array: T[]) =>
+  array.length === 0 ? [{ type: 'mrkdwn' as const, text: '-' }] : array;
