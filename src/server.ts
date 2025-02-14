@@ -77,8 +77,10 @@ Bun.serve({
 
         if (body.type === 'url_verification') return new Response(body.challenge, { status: 200 });
 
-        await slackService.handleEvent(body.event);
-        return new Response(null, { status: 200 });
+        // 3초 안에 응답하지 않으면 웹훅이 다시 들어오므로 await 하지 않고 바로 응답한다
+        slackService.handleEvent(body.event);
+
+        return new Response(null, { status: 204 });
       }
 
       if (req.method === 'POST' && url.pathname === '/github/webhook-endpoint') {
