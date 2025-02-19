@@ -2,7 +2,7 @@ name: send-weekly-dashboard
 
 on:
   schedule:
-    - cron: '20 2 * * 1' # 월요일 한국시간 오전 11시 20분
+    - cron: "20 2 * * 1" # 월요일 한국시간 오전 11시 20분
   workflow_dispatch:
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
       - name: run script
         run: |
           bun install
-          SLACK_WEEKLY_CHANNEL_ID=C07KFRJSL3F \
+          SLACK_WEEKLY_CHANNEL_ID=C08DU07UT6F \
           SLACK_AUTH_TOKEN=${{ secrets.SLACK_AUTH_TOKEN }} \
           GHP_ACCESS_TOKEN=${{ secrets.GHP_ACCESS_TOKEN }} \
           GITHUB_ORGANIZATION=wafflestudio \
