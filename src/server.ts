@@ -1,4 +1,6 @@
 import { type SlackEvent, WebClient } from '@slack/web-api';
+import { z } from 'zod';
+import type { SlackID } from './entities/Slack';
 import { implementGitHubDeployWebhookController } from './infrastructures/implementGitHubDeployWebhookController';
 import { implementMemberWaffleDotComRepository } from './infrastructures/implementMemberWaffleDotComRepository';
 import { implementMongoAtlasWaffleRepository } from './infrastructures/implementMongoAtlasWaffleRepository';
@@ -6,7 +8,7 @@ import { implementOpenAiSummarizeRepository } from './infrastructures/implementO
 import { implementSlackPresenter } from './infrastructures/implementSlackPresenter';
 import { implementDeploymentService } from './services/GithubDeploymentService';
 import { implementSlackEventService } from './services/SlackEventService';
-
+import { implementWaffleService } from './services/WaffleService';
 const slackAuthToken = process.env.SLACK_AUTH_TOKEN;
 const slackBotToken = process.env.SLACK_BOT_TOKEN;
 const slackWatcherChannelId = process.env.SLACK_WATCHER_CHANNEL_ID;
@@ -35,6 +37,18 @@ const slackService = implementSlackEventService({
         if (!res.permalink) throw new Error('Failed to get permalink');
         return { link: res.permalink };
       }),
+    sendMessage: async ({ channel, text, blocks }) => {
+      await new WebClient(slackAuthToken).chat.postMessage({
+        channel,
+        text,
+        blocks,
+      });
+    },
+  },
+});
+const waffleService = implementWaffleService({
+  waffleRepository: implementMongoAtlasWaffleRepository({ mongoDBUri }),
+  messageRepository: {
     sendMessage: async ({ channel, text, blocks }) => {
       await new WebClient(slackAuthToken).chat.postMessage({
         channel,
@@ -79,6 +93,36 @@ Bun.serve({
 
         // 3초 안에 응답하지 않으면 웹훅이 다시 들어오므로 await 하지 않고 바로 응답한다
         slackService.handleEvent(body.event);
+
+        return new Response(null, { status: 204 });
+      }
+
+      if (req.method === 'POST' && url.pathname === '/slack/slash-command') {
+        const formData = await req.formData();
+
+        const token = formData.get('token')?.toString();
+        const type = formData.get('text')?.toString();
+        const userId = formData.get('user_id')?.toString();
+        const channelId = formData.get('channel_id')?.toString();
+
+        const data = z
+          .object({
+            type: z.literal('waffle'),
+            userId: z.string(),
+            channelId: z.string(),
+          })
+          .parse({ type, userId, channelId });
+
+        if (token !== slackBotToken) return new Response(null, { status: 403 });
+
+        // 3초 안에 응답하지 않으면 웹훅이 다시 들어오므로 await 하지 않고 바로 응답한다
+        switch (data.type) {
+          case 'waffle':
+            waffleService.sendDashboard({
+              userId: data.userId as SlackID,
+              channelId: data.channelId,
+            });
+        }
 
         return new Response(null, { status: 204 });
       }
