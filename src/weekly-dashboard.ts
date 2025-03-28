@@ -1,4 +1,5 @@
 import { WebClient } from '@slack/web-api';
+import { MongoClient, ServerApiVersion } from 'mongodb';
 import { implementGithubOctokitRepository } from './infrastructures/implementGithubOctokitRepository';
 import { implementMemberWaffleDotComRepository } from './infrastructures/implementMemberWaffleDotComRepository';
 import { implementMongoAtlasWaffleRepository } from './infrastructures/implementMongoAtlasWaffleRepository';
@@ -15,6 +16,14 @@ if (githubAccessToken === undefined) throw new Error('Missing Github Access Toke
 if (slackWeeklyChannelId === undefined) throw new Error('Missing Slack Weekly Channel ID');
 if (githubOrganization === undefined) throw new Error('Missing Github Organization');
 if (mongoDBUri === undefined) throw new Error('Missing MongoDB URI');
+
+const mongoClient = new MongoClient(mongoDBUri, { serverApi: ServerApiVersion.v1 });
+
+mongoClient.connect();
+
+process.on('exit', () => {
+  mongoClient.close();
+});
 
 /**
 ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
@@ -39,7 +48,7 @@ const dashboardService = implementDashboardService({
     },
   },
   memberRepository: implementMemberWaffleDotComRepository(),
-  waffleRepository: implementMongoAtlasWaffleRepository({ mongoDBUri }),
+  waffleRepository: implementMongoAtlasWaffleRepository({ mongoClient }),
 });
 
 dashboardService.sendWeeklyDashboard(githubOrganization).catch((error: unknown) => {

@@ -1,16 +1,25 @@
+import type { WebClient } from '@slack/web-api';
 import type { MessageHelper, MessengerPresenter } from '../presenters/MessengerPresenter';
 
 export const implementSlackPresenter = ({
-  slackAuthToken,
+  slackClient,
   channelId,
 }: {
-  slackAuthToken: string;
+  slackClient: Pick<WebClient['chat'], 'postMessage'>;
   channelId: string;
 }): MessengerPresenter => {
   return {
-    sendMessage: (getter) => {
+    sendMessage: async (getter) => {
       const { text, options } = getter(helpers);
-      return postMessage({ channelId, slackAuthToken, text, options });
+      const response = await slackClient.postMessage({
+        channel: channelId,
+        text,
+        thread_ts: options?.ts,
+      });
+
+      if (response.ts === undefined) throw new Error('ts is undefined');
+
+      return { ts: response.ts };
     },
   };
 };
@@ -25,28 +34,4 @@ const helpers: MessageHelper = {
   formatBold: (text: string) => `*${text}*`,
   formatMemberMention: (member) => `<@${member.slackUserId}>`,
   formatCodeBlock: (text: string) => `\`\`\`${text}\`\`\``,
-};
-
-const postMessage = async ({
-  channelId,
-  slackAuthToken,
-  text,
-  options,
-}: {
-  channelId: string;
-  slackAuthToken: string;
-  text: string;
-  options?: { ts?: string };
-}) => {
-  const response = await fetch('https://slack.com/api/chat.postMessage', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${slackAuthToken}`,
-    },
-    body: JSON.stringify({ channel: channelId, text, thread_ts: options?.ts }),
-  });
-  const data = (await response.json()) as unknown;
-  if (!response.ok) throw data;
-  return data as { ts: string };
 };
