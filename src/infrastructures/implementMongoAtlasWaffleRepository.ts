@@ -1,4 +1,4 @@
-import { MongoClient, ServerApiVersion } from 'mongodb';
+import type { MongoClient } from 'mongodb';
 import { z } from 'zod';
 import type { SlackID } from '../entities/Slack';
 import type { implementDashboardService } from '../services/DashboardService';
@@ -6,26 +6,22 @@ import type { implementSlackEventService } from '../services/SlackEventService';
 import type { implementWaffleService } from '../services/WaffleService';
 
 export const implementMongoAtlasWaffleRepository = ({
-  mongoDBUri,
-}: { mongoDBUri: string }): Parameters<typeof implementSlackEventService>[0]['waffleRepository'] &
+  mongoClient,
+}: { mongoClient: Pick<MongoClient, 'db'> }): Parameters<
+  typeof implementSlackEventService
+>[0]['waffleRepository'] &
   Parameters<typeof implementDashboardService>[0]['waffleRepository'] &
   Parameters<typeof implementWaffleService>[0]['waffleRepository'] => {
   return {
     insert: async (records) => {
-      const client = new MongoClient(mongoDBUri, { serverApi: ServerApiVersion.v1 });
-      await client.connect();
-      await client.db('waffle').collection('logs').insertMany(records);
-      await client.close();
+      await mongoClient.db('waffle').collection('logs').insertMany(records);
     },
     listLogs: async ({ from, to }) => {
-      const client = new MongoClient(mongoDBUri, { serverApi: ServerApiVersion.v1 });
-      await client.connect();
-      const logs = await client
+      const logs = await mongoClient
         .db('waffle')
         .collection('logs')
         .find({ date: { $gte: from, $lt: to } })
         .toArray();
-      await client.close();
       const logSchema = z.object({
         from: z.string(),
         to: z.string(),
@@ -40,10 +36,7 @@ export const implementMongoAtlasWaffleRepository = ({
       };
     },
     listAllLogs: async () => {
-      const client = new MongoClient(mongoDBUri, { serverApi: ServerApiVersion.v1 });
-      await client.connect();
-      const logs = await client.db('waffle').collection('logs').find().toArray();
-      await client.close();
+      const logs = await mongoClient.db('waffle').collection('logs').find().toArray();
       const logSchema = z.object({
         from: z.string(),
         to: z.string(),
