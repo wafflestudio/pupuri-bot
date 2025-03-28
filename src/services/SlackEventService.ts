@@ -54,8 +54,13 @@ export const implementSlackEventService = ({
           try {
             if (!('user' in event && typeof event.user === 'string' && event.subtype === undefined))
               return;
-
             const user = event.user as SlackID;
+            const targetUsers = ((event.text?.match(/<@[A-Z0-9]+>/g) ?? []) as Mention[]).filter(
+              (m) => m !== slackIDToMention(user),
+            );
+
+            if (targetUsers.length === 0) return;
+
             const todayGivenCount = (
               await waffleRepository.listLogs({
                 from: getTodayStartAsKST(new Date()),
@@ -68,11 +73,8 @@ export const implementSlackEventService = ({
             const left = dayMax - todayGivenCount;
 
             const count = event.text?.match(/:waffle:/g)?.length ?? 0;
-            const targetUsers = ((event.text?.match(/<@[A-Z0-9]+>/g) ?? []) as Mention[]).filter(
-              (m) => m !== slackIDToMention(user),
-            );
 
-            if (count === 0 || targetUsers.length === 0) return;
+            if (count === 0) return;
             const total = count * targetUsers.length;
 
             const href = (
