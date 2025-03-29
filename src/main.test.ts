@@ -11,10 +11,12 @@ const env: Env = {
   deployWatcherChannelId: randomUUIDv7(),
   slackBotToken: randomUUIDv7(),
   slackWatcherChannelId: randomUUIDv7(),
+  NODE_ENV: 'test',
 };
 const mockChannel = 'C0101010101';
 const mockTs = randomUUIDv7();
 const mockPermalink = randomUUIDv7();
+const mockOpenaiContent = randomUUIDv7();
 const mockSlackPostMessage = mock(() => {
   return Promise.resolve({ ts: mockTs } as ChatPostMessageResponse);
 });
@@ -37,17 +39,24 @@ const mockMongoDbCollection = mock(() => {
 const mockMongoDb = mock(() => {
   return { collection: mockMongoDbCollection };
 });
+const mockOpenaiCreate = mock(() => {
+  return { choices: [{ message: { content: mockOpenaiContent } }] };
+});
+const mockWadotListUsers = mock(() => {
+  return Promise.resolve([
+    { slack_id: 'QWER', github_id: 'qwer' },
+    { slack_id: 'ASDF', github_id: 'asdf' },
+    { slack_id: 'ZXCV', github_id: 'zxcv' },
+  ]);
+});
 
 const flush = () => new Promise((r) => setTimeout(() => r(null), 100));
 
 const deps = {
   slackClient: { postMessage: mockSlackPostMessage, getPermalink: mockSlackGetPermalink },
-  openaiClient: {
-    create: () => {
-      throw new Error('Not implemented');
-    },
-  },
+  openaiClient: { create: mockOpenaiCreate },
   mongoClient: { db: mockMongoDb as unknown as Deps['mongoClient']['db'] },
+  wadotClient: { listUsers: mockWadotListUsers },
 } as unknown as Deps;
 
 const clearMocks = () => {
@@ -58,6 +67,7 @@ const clearMocks = () => {
   mockMongoDbCollectionInsertMany.mockClear();
   mockMongoDbCollection.mockClear();
   mockMongoDb.mockClear();
+  mockOpenaiCreate.mockClear();
 };
 
 beforeEach(() => {
@@ -316,8 +326,109 @@ describe('slack slash command', () => {
       ],
     });
   });
-
-  describe.todo('github webhook endpoint');
-
-  describe.todo('status 500 on error');
 });
+
+describe('github webhook endpoint', () => {
+  const getRequest = ({ body }: { body: unknown }) =>
+    new Request(`${BASE_URL}/github/webhook-endpoint`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+
+  test('should 400 on invalid', async () => {
+    const result = await handle(deps, env, getRequest({ body: {} }));
+    expect(deps.slackClient.postMessage).toBeCalledTimes(0);
+    expect(deps.openaiClient.create).toBeCalledTimes(0);
+    expect(result.status).toBe(400);
+    expect(result.body).toBe(null);
+  });
+
+  test('should ignore others', async () => {
+    const result = await handle(deps, env, getRequest({ body: { action: '1234' } }));
+    expect(deps.slackClient.postMessage).toBeCalledTimes(0);
+    expect(deps.openaiClient.create).toBeCalledTimes(0);
+    expect(result.status).toBe(200);
+    expect(result.body).toBe(null);
+  });
+
+  test('success case', async () => {
+    const releaseBody = {
+      action: 'released',
+      release: {
+        author: { login: 'qwer' },
+        body: randomUUIDv7(),
+        tag_name: randomUUIDv7(),
+        html_url: randomUUIDv7(),
+      },
+      repository: { name: randomUUIDv7() },
+    };
+    const releaseResult = await handle(deps, env, getRequest({ body: releaseBody }));
+    expect(deps.openaiClient.create).toBeCalledTimes(1);
+    expect(deps.openaiClient.create).toBeCalledWith({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        {
+          role: 'system',
+          content:
+            '이 내용은 배포에 쓰이는 릴리즈 노트야. 개발자들을 위해 100자 이내의 한글 문장 한 개로 요약해줘.',
+        },
+        { role: 'user', content: releaseBody.release.body },
+      ],
+      temperature: 0.7,
+      max_tokens: 100,
+      top_p: 1,
+    });
+    expect(deps.slackClient.postMessage).toBeCalledTimes(2);
+    expect(deps.slackClient.postMessage).toHaveBeenNthCalledWith(1, {
+      channel: env.deployWatcherChannelId,
+      text: `:rocket: *${releaseBody.repository.name}/${releaseBody.release.tag_name}* <@QWER>\n\n${mockOpenaiContent}`,
+      thread_ts: undefined,
+    });
+    expect(deps.slackClient.postMessage).toHaveBeenNthCalledWith(2, {
+      channel: env.deployWatcherChannelId,
+      text: `:memo: <${releaseBody.release.html_url}|릴리즈 노트>\n\n\`\`\`${releaseBody.release.body}\`\`\``,
+      thread_ts: mockTs,
+    });
+    expect(releaseResult.status).toBe(200);
+    expect(releaseResult.body).toBe(null);
+
+    clearMocks();
+
+    const workflowStartBody = {
+      action: 'requested',
+      workflow_run: {
+        head_branch: releaseBody.release.tag_name,
+        id: randomUUIDv7(),
+        name: 'deploy',
+        html_url: randomUUIDv7(),
+      },
+      repository: { name: releaseBody.repository.name },
+    };
+    const workflowStartResult = await handle(deps, env, getRequest({ body: workflowStartBody }));
+    expect(workflowStartResult.status).toBe(200);
+    expect(workflowStartResult.body).toBe(null);
+    expect(deps.openaiClient.create).toBeCalledTimes(0);
+    expect(deps.slackClient.postMessage).toBeCalledTimes(1);
+    expect(deps.slackClient.postMessage).toBeCalledWith({
+      channel: env.deployWatcherChannelId,
+      text: `:wip: deployment started :point_right: <${workflowStartBody.workflow_run.html_url}|${workflowStartBody.workflow_run.id}>`,
+      thread_ts: mockTs,
+    });
+
+    clearMocks();
+
+    const workflowEndBody = { ...workflowStartBody, action: 'completed' };
+    const workflowEndResult = await handle(deps, env, getRequest({ body: workflowEndBody }));
+    expect(workflowEndResult.status).toBe(200);
+    expect(workflowEndResult.body).toBe(null);
+    expect(deps.openaiClient.create).toBeCalledTimes(0);
+    expect(deps.slackClient.postMessage).toBeCalledTimes(1);
+    expect(deps.slackClient.postMessage).toBeCalledWith({
+      channel: env.deployWatcherChannelId,
+      text: `:tada: deployment completed <${workflowEndBody.workflow_run.html_url}|${workflowEndBody.workflow_run.id}>`,
+      thread_ts: mockTs,
+    });
+  });
+});
+
+describe.todo('status 500 on error');

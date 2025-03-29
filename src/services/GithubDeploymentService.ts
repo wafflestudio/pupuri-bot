@@ -4,7 +4,6 @@ import type { MessengerPresenter } from '../presenters/MessengerPresenter';
 export type GithubDeploymentService = {
   handleCreateRelease: (body: {
     authorGithubUsername: string;
-    otherContributors: Member['githubUsername'][];
     releaseNote: string;
     tag: string;
     releaseUrl: string;
@@ -43,7 +42,6 @@ export const implementDeploymentService = ({
     handleCreateRelease: async ({
       releaseNote,
       authorGithubUsername,
-      otherContributors,
       tag,
       releaseUrl,
       repository,
@@ -60,20 +58,9 @@ export const implementDeploymentService = ({
             foundMember !== undefined
               ? formatMemberMention(foundMember)
               : `@${authorGithubUsername}`;
-          const contributorsText =
-            otherContributors.length === 0
-              ? ''
-              : ` cc. ${otherContributors
-                  .map((c) => {
-                    const foundContributor = members.find((m) => m.githubUsername === c);
-                    return foundContributor !== undefined
-                      ? formatMemberMention(foundContributor)
-                      : `@${c}`;
-                  })
-                  .join(', ')}`;
           return {
             text: [
-              `${formatEmoji('rocket')} *${repository}/${tag}* ${authorText}${contributorsText}`,
+              `${formatEmoji('rocket')} *${repository}/${tag}* ${authorText}`,
               summarized,
             ].join('\n\n'),
           };
