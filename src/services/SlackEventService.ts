@@ -51,50 +51,78 @@ export const implementSlackEventService = ({
           }));
           break;
         case 'message': {
-          try {
-            if (!('user' in event && typeof event.user === 'string' && event.subtype === undefined))
-              return;
-            const user = event.user as SlackID;
-            const targetUsers = ((event.text?.match(/<@[A-Z0-9]+>/g) ?? []) as Mention[]).filter(
-              (m) => m !== slackIDToMention(user),
-            );
+          if (!('user' in event && typeof event.user === 'string' && event.subtype === undefined))
+            return;
+          const user = event.user as SlackID;
+          const targetUsers = ((event.text?.match(/<@[A-Z0-9]+>/g) ?? []) as Mention[]).filter(
+            (m) => m !== slackIDToMention(user),
+          );
 
-            if (targetUsers.length === 0) return;
+          if (targetUsers.length === 0) return;
 
-            const todayGivenCount = (
-              await waffleRepository.listLogs({
-                from: getTodayStartAsKST(new Date()),
-                to: new Date(),
-              })
-            ).logs
-              .filter((l) => l.from === user)
-              .reduce((a, c) => a + c.count, 0);
-            const dayMax = 5;
-            const left = dayMax - todayGivenCount;
+          const todayGivenCount = (
+            await waffleRepository.listLogs({
+              from: getTodayStartAsKST(new Date()),
+              to: new Date(),
+            })
+          ).logs
+            .filter((l) => l.from === user)
+            .reduce((a, c) => a + c.count, 0);
+          const dayMax = 5;
+          const left = dayMax - todayGivenCount;
 
-            const count = event.text?.match(/:waffle:/g)?.length ?? 0;
+          const count = event.text?.match(/:waffle:/g)?.length ?? 0;
 
-            if (count === 0) return;
-            const total = count * targetUsers.length;
+          if (count === 0) return;
+          const total = count * targetUsers.length;
 
-            const href = (
-              await messageRepository.getPermalink({
-                channel: event.channel,
-                ts: event.ts,
-              })
-            ).link;
+          const href = (
+            await messageRepository.getPermalink({
+              channel: event.channel,
+              ts: event.ts,
+            })
+          ).link;
 
-            if (left < total) {
-              await messageRepository.sendMessage({
+          if (left < total) {
+            await messageRepository.sendMessage({
+              channel: event.user,
+              text: `*You have only ${left} ${left === 1 ? 'Waffle' : 'Waffles'} left for today!*`,
+              blocks: [
+                {
+                  type: 'section',
+                  text: {
+                    type: 'mrkdwn',
+                    text: `*You have only ${left} ${left === 1 ? 'Waffle' : 'Waffles'} left for today!*`,
+                  },
+                  accessory: {
+                    type: 'button',
+                    text: { type: 'plain_text', text: 'View Message' },
+                    url: href,
+                  },
+                },
+              ],
+            });
+            return;
+          }
+
+          await Promise.all([
+            ...[
+              {
                 channel: event.user,
-                text: `*You have only ${left} ${left === 1 ? 'Waffle' : 'Waffles'} left for today!*`,
+                text: `*You Gave ${count} ${count === 1 ? 'Waffle' : 'Waffles'} to ${targetUsers.join(',')} (${left - total} left)*`,
+              },
+              ...targetUsers.map((u) => ({
+                channel: mentionToSlackID(u),
+                text: `*You Received ${count} ${count === 1 ? 'Waffle' : 'Waffles'} from ${slackIDToMention(user)}!*`,
+              })),
+            ].map(({ channel, text }) =>
+              messageRepository.sendMessage({
+                channel,
+                text,
                 blocks: [
                   {
                     type: 'section',
-                    text: {
-                      type: 'mrkdwn',
-                      text: `*You have only ${left} ${left === 1 ? 'Waffle' : 'Waffles'} left for today!*`,
-                    },
+                    text: { type: 'mrkdwn', text },
                     accessory: {
                       type: 'button',
                       text: { type: 'plain_text', text: 'View Message' },
@@ -102,55 +130,19 @@ export const implementSlackEventService = ({
                     },
                   },
                 ],
-              });
-              return;
-            }
+              }),
+            ),
 
-            await Promise.all([
-              ...[
-                {
-                  channel: event.user,
-                  text: `*You Gave ${count} ${count === 1 ? 'Waffle' : 'Waffles'} to ${targetUsers.join(',')} (${left - total} left)*`,
-                },
-                ...targetUsers.map((u) => ({
-                  channel: mentionToSlackID(u),
-                  text: `*You Received ${count} ${count === 1 ? 'Waffle' : 'Waffles'} from ${slackIDToMention(user)}!*`,
-                })),
-              ].map(({ channel, text }) =>
-                messageRepository.sendMessage({
-                  channel,
-                  text,
-                  blocks: [
-                    {
-                      type: 'section',
-                      text: { type: 'mrkdwn', text },
-                      accessory: {
-                        type: 'button',
-                        text: { type: 'plain_text', text: 'View Message' },
-                        url: href,
-                      },
-                    },
-                  ],
-                }),
-              ),
-
-              waffleRepository.insert(
-                targetUsers.map((targetUser) => ({
-                  from: user,
-                  to: mentionToSlackID(targetUser),
-                  count,
-                  href,
-                  date: new Date(),
-                })),
-              ),
-            ]);
-          } catch (err) {
-            console.error(err);
-            messageRepository.sendMessage({
-              channel: 'C05021XHMQV',
-              text: err instanceof Error ? err.message : 'something went wrong',
-            });
-          }
+            waffleRepository.insert(
+              targetUsers.map((targetUser) => ({
+                from: user,
+                to: mentionToSlackID(targetUser),
+                count,
+                href,
+                date: new Date(),
+              })),
+            ),
+          ]);
 
           return;
         }

@@ -18,11 +18,13 @@ export const handle = async (
     slackClient: Pick<WebClient['chat'], 'postMessage' | 'getPermalink'>;
     openaiClient: Pick<OpenAI['chat']['completions'], 'create'>;
     mongoClient: Pick<MongoClient, 'db'>;
+    wadotClient: { listUsers: () => Promise<{ github_id: string; slack_id: string }[]> };
   },
   env: {
     slackBotToken: string;
     slackWatcherChannelId: string;
     deployWatcherChannelId: string;
+    NODE_ENV: 'production' | 'development' | 'test' | undefined;
   },
   request: Request,
 ): Promise<Response> => {
@@ -58,7 +60,7 @@ export const handle = async (
         channelId: env.deployWatcherChannelId,
       }),
       summarizeLLMRepository: implementOpenAiSummarizeRepository(dependencies),
-      memberRepository: implementMemberWaffleDotComRepository(),
+      memberRepository: implementMemberWaffleDotComRepository(dependencies),
     }),
   });
 
@@ -122,8 +124,18 @@ export const handle = async (
     }
 
     return new Response(null, { status: 404 });
-  } catch (_) {
-    console.error(_);
+  } catch (error) {
+    if (env.NODE_ENV !== 'test') console.error(error);
+
+    if (error instanceof Error && error.message === '400')
+      return new Response(null, { status: 400 });
+
+    // TODO: change to truffle sdk
+    dependencies.slackClient.postMessage({
+      channel: 'C05021XHMQV',
+      text: error instanceof Error ? error.message : 'something went wrong',
+    });
+
     return new Response(null, { status: 500 });
   }
 };

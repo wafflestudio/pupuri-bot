@@ -35,11 +35,18 @@ Bun.serve({
         slackClient: new WebClient(slackAuthToken).chat,
         openaiClient: new OpenAI({ apiKey: openaiApiKey }).chat.completions,
         mongoClient,
+        wadotClient: {
+          listUsers: () =>
+            fetch('https://wadot-api.wafflestudio.com/api/v1/users').then(
+              (res) => res.json() as Promise<{ github_id: string; slack_id: string }[]>,
+            ),
+        },
       },
       {
         slackBotToken,
         slackWatcherChannelId,
         deployWatcherChannelId,
+        NODE_ENV: process.env.NODE_ENV as 'production' | 'development' | 'test' | undefined,
       },
       req,
     );

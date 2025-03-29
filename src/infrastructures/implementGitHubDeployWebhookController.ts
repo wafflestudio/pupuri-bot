@@ -39,7 +39,6 @@ export const implementGitHubDeployWebhookController = ({
           releaseUrl: releaseBody.release.html_url,
           repository: releaseBody.repository.name,
           releaseNote: releaseBody.release.body,
-          otherContributors: [],
         });
       }
 
