@@ -429,6 +429,43 @@ describe('github webhook endpoint', () => {
       thread_ts: mockTs,
     });
   });
+
+  test('failed to summarize', async () => {
+    const releaseBody = {
+      action: 'released',
+      release: {
+        author: { login: 'qwer' },
+        body: randomUUIDv7(),
+        tag_name: randomUUIDv7(),
+        html_url: randomUUIDv7(),
+      },
+      repository: { name: randomUUIDv7() },
+    };
+    const releaseResult = await handle(
+      {
+        ...deps,
+        openaiClient: {
+          create: () => {
+            throw new Error('quota exceeded');
+          },
+        },
+      },
+      env,
+      getRequest({ body: releaseBody }),
+    );
+    expect(releaseResult.status).toBe(200);
+    expect(deps.slackClient.postMessage).toBeCalledTimes(2);
+    expect(deps.slackClient.postMessage).toHaveBeenNthCalledWith(1, {
+      channel: env.deployWatcherChannelId,
+      text: `:rocket: *${releaseBody.repository.name}/${releaseBody.release.tag_name}* <@QWER>\n\n요약할 수 없습니다: quota exceeded`,
+      thread_ts: undefined,
+    });
+    expect(deps.slackClient.postMessage).toHaveBeenNthCalledWith(2, {
+      channel: env.deployWatcherChannelId,
+      text: `:memo: <${releaseBody.release.html_url}|릴리즈 노트>\n\n\`\`\`${releaseBody.release.body}\`\`\``,
+      thread_ts: mockTs,
+    });
+  });
 });
 
 describe('status 500 on error', () => {
