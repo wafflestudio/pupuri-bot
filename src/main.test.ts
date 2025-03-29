@@ -431,4 +431,14 @@ describe('github webhook endpoint', () => {
   });
 });
 
-describe.todo('status 500 on error');
+describe('status 500 on error', () => {
+  test('should work', async () => {
+    const response = await handle(deps, env, null as unknown as Request);
+    expect(response.status).toBe(500);
+    expect(deps.slackClient.postMessage).toBeCalledTimes(1);
+    expect(deps.slackClient.postMessage).toBeCalledWith({
+      channel: 'C05021XHMQV',
+      text: `null is not an object (evaluating 'request.url')`,
+    });
+  });
+});
