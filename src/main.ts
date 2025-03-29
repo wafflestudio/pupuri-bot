@@ -64,9 +64,9 @@ export const handle = async (
     }),
   });
 
-  const url = new URL(request.url);
-
   try {
+    const url = new URL(request.url);
+
     if (request.method === 'GET' && url.pathname === '/health-check')
       return new Response('ok', { status: 200 });
 
