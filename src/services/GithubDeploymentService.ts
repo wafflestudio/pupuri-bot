@@ -29,13 +29,9 @@ const identifierToSlackTs: Partial<Record<string, string>> = {};
 
 export const implementDeploymentService = ({
   messengerPresenter,
-  summarizeLLMRepository,
   memberRepository,
 }: {
   messengerPresenter: MessengerPresenter;
-  summarizeLLMRepository: {
-    summarizeReleaseNote: (content: string, options: { maxLen: number }) => Promise<string>;
-  };
   memberRepository: { getAllMembers: () => Promise<{ members: Member[] }> };
 }): GithubDeploymentService => {
   return {
@@ -46,9 +42,6 @@ export const implementDeploymentService = ({
       releaseUrl,
       repository,
     }) => {
-      const summarized = await summarizeLLMRepository.summarizeReleaseNote(releaseNote, {
-        maxLen: 100,
-      });
       const { members } = await memberRepository.getAllMembers();
 
       const { ts } = await messengerPresenter.sendMessage(
@@ -59,10 +52,7 @@ export const implementDeploymentService = ({
               ? formatMemberMention(foundMember)
               : `@${authorGithubUsername}`;
           return {
-            text: [
-              `${formatEmoji('rocket')} *${repository}/${tag}* ${authorText}`,
-              summarized,
-            ].join('\n\n'),
+            text: `${formatEmoji('rocket')} *${repository}/${tag}* ${authorText}`,
           };
         },
       );
