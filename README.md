@@ -20,17 +20,18 @@
 
 ### weekly dashboard
 
-- 일주일간 가장 활발했던 레포지토리를 지정된 active 채널로 보냅니다.
+- 매주 월요일 아침 11시 20분에 지난 주 통계를 지정된 active 채널로 보냅니다.
 
 ### heywaffle
 
+- 칭찬스티커로 와플을 줄 수 있습니다.
 - https://cloud.mongodb.com/v2/67979f416121847ae5d10c2a#/overview
 
 ## setup
 
 먼저 [`bun`](https://bun.sh/) 이 설치되어 있어야 합니다.
 
-아래 환경변수들을 `.env.local` 에 세팅해주세요.
+아래 환경변수들을 `.env.local` 에 세팅해주세요. 하드코딩된 채널의 경우 개인 DM으로 세팅하면 더 좋을 수 있습니다.
 
 ```env
 SLACK_BOT_TOKEN=SVs...
@@ -46,7 +47,7 @@ MONGODB_URI=mongodb+srv://...
 서버를 띄우려면 아래와 같이 수행해주세요.
 
 ```bash
-bun start:server
+bun dev:server
 ```
 
 weekly dashboard 전송을 테스트하려면 아래와 같이 수행해주세요.
@@ -57,10 +58,6 @@ bun send:weekly-dashboard
 
 ## deploy
 
-서버를 배포하려면 아래와 같이 수행해주세요.
+서버를 배포하려면 [releases](https://github.com/wafflestudio/pupuri-bot/releases) 에서 기존 컨벤션에 맞게 릴리즈와 태그를 생성해 주세요.
 
-```bash
-bun deploy:server
-```
-
-weekly dashboard 는 github actions 로 수행되기에 별도의 배포가 필요하지 않습니다.
+weekly dashboard 는 github actions 로 수행되기에, main에 머지만 되었다면 별도의 배포가 필요하진 않습니다.
