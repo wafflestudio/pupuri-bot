@@ -31,4 +31,5 @@ type SupportedEmoji =
   | 'point_right'
   | 'blob-clap'
   | 'github'
-  | 'memo';
+  | 'memo'
+  | 'done';

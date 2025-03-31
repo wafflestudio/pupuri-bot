@@ -387,7 +387,7 @@ describe('github webhook endpoint', () => {
     expect(deps.slackClient.postMessage).toBeCalledTimes(1);
     expect(deps.slackClient.postMessage).toBeCalledWith({
       channel: env.deployWatcherChannelId,
-      text: `:wip: deployment started :point_right: <${workflowStartBody.workflow_run.html_url}|${workflowStartBody.workflow_run.id}>`,
+      text: `:github: :wip: workflow started <${workflowStartBody.workflow_run.html_url}|${workflowStartBody.workflow_run.id}>`,
       thread_ts: mockTs,
     });
 
@@ -400,7 +400,7 @@ describe('github webhook endpoint', () => {
     expect(deps.slackClient.postMessage).toBeCalledTimes(1);
     expect(deps.slackClient.postMessage).toBeCalledWith({
       channel: env.deployWatcherChannelId,
-      text: `:tada: deployment completed <${workflowEndBody.workflow_run.html_url}|${workflowEndBody.workflow_run.id}>`,
+      text: `:github: :done: workflow completed <${workflowEndBody.workflow_run.html_url}|${workflowEndBody.workflow_run.id}>`,
       thread_ts: mockTs,
     });
   });
