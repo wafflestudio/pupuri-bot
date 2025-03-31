@@ -75,7 +75,7 @@ export const implementDeploymentService = ({
 
       await messengerPresenter.sendMessage(({ formatEmoji, formatLink }) => ({
         text: [
-          `${formatEmoji('wip')} deployment started ${formatEmoji('point_right')} ${formatLink(
+          `${formatEmoji('github')} ${formatEmoji('wip')} workflow started ${formatLink(
             `${workflowId}`,
             {
               url: workflowUrl,
@@ -93,7 +93,7 @@ export const implementDeploymentService = ({
 
       await messengerPresenter.sendMessage(({ formatEmoji, formatLink }) => ({
         text: [
-          `${formatEmoji('tada')} deployment completed ${formatLink(`${workflowId}`, { url: workflowUrl })}`,
+          `${formatEmoji('github')} ${formatEmoji('done')} workflow completed ${formatLink(`${workflowId}`, { url: workflowUrl })}`,
         ].join('\n'),
         options: { ts },
       }));
