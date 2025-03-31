@@ -3,20 +3,17 @@ import type { SlackID } from './entities/Slack';
 import { implementGitHubDeployWebhookController } from './infrastructures/implementGitHubDeployWebhookController';
 import { implementMemberWaffleDotComRepository } from './infrastructures/implementMemberWaffleDotComRepository';
 import { implementMongoAtlasWaffleRepository } from './infrastructures/implementMongoAtlasWaffleRepository';
-import { implementOpenAiSummarizeRepository } from './infrastructures/implementOpenAiSummarizeRepository';
 import { implementSlackPresenter } from './infrastructures/implementSlackPresenter';
 import { implementDeploymentService } from './services/GithubDeploymentService';
 import { implementSlackEventService } from './services/SlackEventService';
 import { implementWaffleService } from './services/WaffleService';
 
 import type { MongoClient } from 'mongodb';
-import type OpenAI from 'openai';
 import { z } from 'zod';
 
 export const handle = async (
   dependencies: {
     slackClient: Pick<WebClient['chat'], 'postMessage' | 'getPermalink'>;
-    openaiClient: Pick<OpenAI['chat']['completions'], 'create'>;
     mongoClient: Pick<MongoClient, 'db'>;
     wadotClient: { listUsers: () => Promise<{ github_id: string; slack_id: string }[]> };
   },
@@ -59,7 +56,6 @@ export const handle = async (
         slackClient: dependencies.slackClient,
         channelId: env.deployWatcherChannelId,
       }),
-      summarizeLLMRepository: implementOpenAiSummarizeRepository(dependencies),
       memberRepository: implementMemberWaffleDotComRepository(dependencies),
     }),
   });

@@ -16,7 +16,6 @@ const env: Env = {
 const mockChannel = 'C0101010101';
 const mockTs = randomUUIDv7();
 const mockPermalink = randomUUIDv7();
-const mockOpenaiContent = randomUUIDv7();
 const mockSlackPostMessage = mock(() => {
   return Promise.resolve({ ts: mockTs } as ChatPostMessageResponse);
 });
@@ -39,9 +38,6 @@ const mockMongoDbCollection = mock(() => {
 const mockMongoDb = mock(() => {
   return { collection: mockMongoDbCollection };
 });
-const mockOpenaiCreate = mock(() => {
-  return { choices: [{ message: { content: mockOpenaiContent } }] };
-});
 const mockWadotListUsers = mock(() => {
   return Promise.resolve([
     { slack_id: 'QWER', github_id: 'qwer' },
@@ -54,7 +50,6 @@ const flush = () => new Promise((r) => setTimeout(() => r(null), 100));
 
 const deps = {
   slackClient: { postMessage: mockSlackPostMessage, getPermalink: mockSlackGetPermalink },
-  openaiClient: { create: mockOpenaiCreate },
   mongoClient: { db: mockMongoDb as unknown as Deps['mongoClient']['db'] },
   wadotClient: { listUsers: mockWadotListUsers },
 } as unknown as Deps;
@@ -67,7 +62,6 @@ const clearMocks = () => {
   mockMongoDbCollectionInsertMany.mockClear();
   mockMongoDbCollection.mockClear();
   mockMongoDb.mockClear();
-  mockOpenaiCreate.mockClear();
 };
 
 beforeEach(() => {
@@ -338,7 +332,6 @@ describe('github webhook endpoint', () => {
   test('should 400 on invalid', async () => {
     const result = await handle(deps, env, getRequest({ body: {} }));
     expect(deps.slackClient.postMessage).toBeCalledTimes(0);
-    expect(deps.openaiClient.create).toBeCalledTimes(0);
     expect(result.status).toBe(400);
     expect(result.body).toBe(null);
   });
@@ -346,7 +339,6 @@ describe('github webhook endpoint', () => {
   test('should ignore others', async () => {
     const result = await handle(deps, env, getRequest({ body: { action: '1234' } }));
     expect(deps.slackClient.postMessage).toBeCalledTimes(0);
-    expect(deps.openaiClient.create).toBeCalledTimes(0);
     expect(result.status).toBe(200);
     expect(result.body).toBe(null);
   });
@@ -363,25 +355,10 @@ describe('github webhook endpoint', () => {
       repository: { name: randomUUIDv7() },
     };
     const releaseResult = await handle(deps, env, getRequest({ body: releaseBody }));
-    expect(deps.openaiClient.create).toBeCalledTimes(1);
-    expect(deps.openaiClient.create).toBeCalledWith({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content:
-            '이 내용은 배포에 쓰이는 릴리즈 노트야. 개발자들을 위해 100자 이내의 한글 문장 한 개로 요약해줘.',
-        },
-        { role: 'user', content: releaseBody.release.body },
-      ],
-      temperature: 0.7,
-      max_tokens: 100,
-      top_p: 1,
-    });
     expect(deps.slackClient.postMessage).toBeCalledTimes(2);
     expect(deps.slackClient.postMessage).toHaveBeenNthCalledWith(1, {
       channel: env.deployWatcherChannelId,
-      text: `:rocket: *${releaseBody.repository.name}/${releaseBody.release.tag_name}* <@QWER>\n\n${mockOpenaiContent}`,
+      text: `:rocket: *${releaseBody.repository.name}/${releaseBody.release.tag_name}* <@QWER>`,
       thread_ts: undefined,
     });
     expect(deps.slackClient.postMessage).toHaveBeenNthCalledWith(2, {
@@ -407,7 +384,6 @@ describe('github webhook endpoint', () => {
     const workflowStartResult = await handle(deps, env, getRequest({ body: workflowStartBody }));
     expect(workflowStartResult.status).toBe(200);
     expect(workflowStartResult.body).toBe(null);
-    expect(deps.openaiClient.create).toBeCalledTimes(0);
     expect(deps.slackClient.postMessage).toBeCalledTimes(1);
     expect(deps.slackClient.postMessage).toBeCalledWith({
       channel: env.deployWatcherChannelId,
@@ -421,48 +397,10 @@ describe('github webhook endpoint', () => {
     const workflowEndResult = await handle(deps, env, getRequest({ body: workflowEndBody }));
     expect(workflowEndResult.status).toBe(200);
     expect(workflowEndResult.body).toBe(null);
-    expect(deps.openaiClient.create).toBeCalledTimes(0);
     expect(deps.slackClient.postMessage).toBeCalledTimes(1);
     expect(deps.slackClient.postMessage).toBeCalledWith({
       channel: env.deployWatcherChannelId,
       text: `:tada: deployment completed <${workflowEndBody.workflow_run.html_url}|${workflowEndBody.workflow_run.id}>`,
-      thread_ts: mockTs,
-    });
-  });
-
-  test('failed to summarize', async () => {
-    const releaseBody = {
-      action: 'released',
-      release: {
-        author: { login: 'qwer' },
-        body: randomUUIDv7(),
-        tag_name: randomUUIDv7(),
-        html_url: randomUUIDv7(),
-      },
-      repository: { name: randomUUIDv7() },
-    };
-    const releaseResult = await handle(
-      {
-        ...deps,
-        openaiClient: {
-          create: () => {
-            throw new Error('quota exceeded');
-          },
-        },
-      },
-      env,
-      getRequest({ body: releaseBody }),
-    );
-    expect(releaseResult.status).toBe(200);
-    expect(deps.slackClient.postMessage).toBeCalledTimes(2);
-    expect(deps.slackClient.postMessage).toHaveBeenNthCalledWith(1, {
-      channel: env.deployWatcherChannelId,
-      text: `:rocket: *${releaseBody.repository.name}/${releaseBody.release.tag_name}* <@QWER>\n\n요약할 수 없습니다: quota exceeded`,
-      thread_ts: undefined,
-    });
-    expect(deps.slackClient.postMessage).toHaveBeenNthCalledWith(2, {
-      channel: env.deployWatcherChannelId,
-      text: `:memo: <${releaseBody.release.html_url}|릴리즈 노트>\n\n\`\`\`${releaseBody.release.body}\`\`\``,
       thread_ts: mockTs,
     });
   });
