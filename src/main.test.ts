@@ -311,9 +311,9 @@ describe('slack slash command', () => {
           text: {
             type: 'mrkdwn',
             text: [
-              '<@QWER> (`5 Given, 0 Taken`)',
-              '<@ASDF> (`0 Given, 3 Taken`)',
-              '<@ZXCV> (`0 Given, 2 Taken`)',
+              '<@QWER> (`5 Given, 0 Received`)',
+              '<@ASDF> (`0 Given, 3 Received`)',
+              '<@ZXCV> (`0 Given, 2 Received`)',
             ].join('\n'),
           },
         },

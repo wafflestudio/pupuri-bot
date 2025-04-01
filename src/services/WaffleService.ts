@@ -51,7 +51,9 @@ export const implementWaffleService = ({
             text: {
               type: 'mrkdwn',
               text: userStats
-                .map((u) => `${slackIDToMention(u.user)} (\`${u.given} Given, ${u.taken} Taken\`)`)
+                .map(
+                  (u) => `${slackIDToMention(u.user)} (\`${u.given} Given, ${u.taken} Received\`)`,
+                )
                 .join('\n'),
             },
           },
