@@ -4,6 +4,6 @@ export type Log = {
   from: SlackID;
   to: SlackID;
   count: number;
-  href: string;
+  href: string | null;
   date: Date;
 };
