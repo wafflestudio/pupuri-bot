@@ -36,7 +36,8 @@ export const implementWaffleService = ({
 
           return a;
         }, [])
-        .toSorted((a, b) => b.given + b.taken - (a.given + a.taken));
+        .toSorted((a, b) => b.given + b.taken - (a.given + a.taken))
+        .slice(0, 20);
 
       const channel = channelId.startsWith('C') ? channelId : userId;
 
