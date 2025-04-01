@@ -26,7 +26,7 @@ export const implementMongoAtlasWaffleRepository = ({
         from: z.string(),
         to: z.string(),
         count: z.number(),
-        href: z.string(),
+        href: z.string().nullable(),
         date: z.date(),
       });
       return {
@@ -41,7 +41,7 @@ export const implementMongoAtlasWaffleRepository = ({
         from: z.string(),
         to: z.string(),
         count: z.number(),
-        href: z.string(),
+        href: z.string().nullable(),
         date: z.date(),
       });
       return {
