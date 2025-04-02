@@ -6,7 +6,11 @@ import type { Member } from '../entities/Member';
  */
 export const implementMemberWaffleDotComRepository = ({
   wadotClient,
-}: { wadotClient: { listUsers: () => Promise<{ github_id: string; slack_id: string }[]> } }): {
+}: {
+  wadotClient: {
+    listUsers: () => Promise<{ github_id: string; slack_id: string; first_name: string }[]>;
+  };
+}): {
   getAllMembers: () => Promise<{ members: Member[] }>;
 } => {
   return {
@@ -17,6 +21,7 @@ export const implementMemberWaffleDotComRepository = ({
         members: users.map((user) => ({
           slackUserId: user.slack_id,
           githubUsername: user.github_id,
+          name: user.first_name,
         })),
       };
     },
