@@ -34,7 +34,10 @@ Bun.serve({
         wadotClient: {
           listUsers: () =>
             fetch('https://wadot-api.wafflestudio.com/api/v1/users').then(
-              (res) => res.json() as Promise<{ github_id: string; slack_id: string }[]>,
+              (res) =>
+                res.json() as Promise<
+                  { github_id: string; slack_id: string; first_name: string }[]
+                >,
             ),
         },
       },

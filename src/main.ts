@@ -10,12 +10,18 @@ import { implementWaffleService } from './services/WaffleService';
 
 import type { MongoClient } from 'mongodb';
 import { z } from 'zod';
+import {
+  type WaffleGraphDashboardService,
+  implementWaffleGraphDashboardService,
+} from './services/WaffleGraphDashboardService';
 
 export const handle = async (
   dependencies: {
     slackClient: Pick<WebClient['chat'], 'postMessage' | 'getPermalink'>;
     mongoClient: Pick<MongoClient, 'db'>;
-    wadotClient: { listUsers: () => Promise<{ github_id: string; slack_id: string }[]> };
+    wadotClient: {
+      listUsers: () => Promise<{ github_id: string; slack_id: string; first_name: string }[]>;
+    };
   },
   env: {
     slackBotToken: string;
@@ -50,6 +56,10 @@ export const handle = async (
       },
     },
   });
+  const waffleGraphDashboardService = implementWaffleGraphDashboardService({
+    waffleRepository: implementMongoAtlasWaffleRepository(dependencies),
+    memberRepository: implementMemberWaffleDotComRepository(dependencies),
+  });
   const deployWebhookController = implementGitHubDeployWebhookController({
     deploymentService: implementDeploymentService({
       messengerPresenter: implementSlackPresenter({
@@ -65,6 +75,14 @@ export const handle = async (
 
     if (request.method === 'GET' && url.pathname === '/health-check')
       return new Response('ok', { status: 200 });
+
+    if (request.method === 'GET' && url.pathname === '/dashboard') {
+      const data = await waffleGraphDashboardService.getGraphData();
+      return new Response(html(data), {
+        status: 200,
+        headers: { 'content-type': 'text/html;charset=utf-8' },
+      });
+    }
 
     if (request.method === 'POST' && url.pathname === '/slack/action-endpoint') {
       const body = (await request.json()) as {
@@ -134,4 +152,33 @@ export const handle = async (
 
     return new Response(null, { status: 500 });
   }
+};
+
+const html = (data: Awaited<ReturnType<WaffleGraphDashboardService['getGraphData']>>) => {
+  return `
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <title>Waffle Dashboard</title>
+    <script src="//cdn.jsdelivr.net/npm/3d-force-graph"></script>
+  </head>
+  <body style="margin: 0">
+      <div id="graph"></div>
+
+      <script>
+        const gData = {
+          nodes: ${JSON.stringify(data.vertexes)},
+          links: ${JSON.stringify(data.edges.map((e) => ({ source: e.from, target: e.to, count: e.count })))}
+        };
+
+        const Graph = ForceGraph3D()
+          (document.getElementById('graph'))
+          .nodeVal(node => node.count / 10) // use val for node size
+          .nodeLabel(node => node.title)
+          .linkWidth(link => link.count * 0.03) // use weight for link thickness
+          .graphData(gData);
+      </script>
+    </body>
+</html>
+  `;
 };
