@@ -1,4 +1,5 @@
 import type { SlackEvent, WebClient } from '@slack/web-api';
+import type { TruffleClient } from '@wafflestudio/truffle-bunjs';
 import type { SlackID } from './entities/Slack';
 import { implementGitHubDeployWebhookController } from './infrastructures/implementGitHubDeployWebhookController';
 import { implementMemberWaffleDotComRepository } from './infrastructures/implementMemberWaffleDotComRepository';
@@ -22,6 +23,7 @@ export const handle = async (
     wadotClient: {
       listUsers: () => Promise<{ github_id: string; slack_id: string; first_name: string }[]>;
     };
+    truffleClient: TruffleClient;
   },
   env: {
     slackBotToken: string;
@@ -144,11 +146,9 @@ export const handle = async (
     if (error instanceof Error && error.message === '400')
       return new Response(null, { status: 400 });
 
-    // TODO: change to truffle sdk
-    dependencies.slackClient.postMessage({
-      channel: 'C05021XHMQV',
-      text: error instanceof Error ? error.message : 'something went wrong',
-    });
+    dependencies.truffleClient.capture(
+      error instanceof Error ? error : new Error(`unknown error: ${JSON.stringify(error)}`),
+    );
 
     return new Response(null, { status: 500 });
   }
