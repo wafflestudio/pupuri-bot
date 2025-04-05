@@ -1,5 +1,5 @@
 import type { DeployWebhookController } from '../controllers/DeployWebhookConrtoller';
-import type { GithubDeploymentService } from '../services/GithubDeploymentService';
+import type { DeplyWatcherUsecase } from '../usecases/DeployWatcherUsecase';
 
 type ReleaseBody = {
   release: {
@@ -24,7 +24,7 @@ type WorkflowRunBody = {
 export const implementGitHubDeployWebhookController = ({
   deploymentService,
 }: {
-  deploymentService: GithubDeploymentService;
+  deploymentService: DeplyWatcherUsecase;
 }): DeployWebhookController => {
   return {
     handle: (body) => {

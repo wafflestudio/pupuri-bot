@@ -1,17 +1,17 @@
 import type { MongoClient } from 'mongodb';
 import { z } from 'zod';
 import type { SlackID } from '../entities/Slack';
-import type { implementDashboardService } from '../services/DashboardService';
-import type { implementWaffleService } from '../services/WaffleService';
+import type { getHeywaffleDashboardUsecase } from '../usecases/HeywaffleDashboardUsecase';
 import type { getHeywaffleUsecase } from '../usecases/HeywaffleUsecase';
+import type { getWeeklyWaffleStudioDashboardUsecase } from '../usecases/WeeklyWaffleStudioDashboardUsecase';
 
 export const implementMongoAtlasWaffleRepository = ({
   mongoClient,
 }: { mongoClient: Pick<MongoClient, 'db'> }): Parameters<
   typeof getHeywaffleUsecase
 >[0]['waffleRepository'] &
-  Parameters<typeof implementDashboardService>[0]['waffleRepository'] &
-  Parameters<typeof implementWaffleService>[0]['waffleRepository'] => {
+  Parameters<typeof getWeeklyWaffleStudioDashboardUsecase>[0]['waffleRepository'] &
+  Parameters<typeof getHeywaffleDashboardUsecase>[0]['waffleRepository'] => {
   return {
     insert: async (records) => {
       await mongoClient.db('waffle').collection('logs').insertMany(records);

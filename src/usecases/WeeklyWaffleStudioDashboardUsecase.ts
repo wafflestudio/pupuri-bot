@@ -4,11 +4,11 @@ import { getScore } from '../entities/Score';
 import { Emoji, type SlackID } from '../entities/Slack';
 import type { Log } from '../entities/Waffle';
 
-type DashboardService = {
+type WeeklyWaffleStudioDashboardUsecase = {
   sendWeeklyDashboard: (organization: string) => Promise<void>;
 };
 
-export const implementDashboardService = ({
+export const getWeeklyWaffleStudioDashboardUsecase = ({
   githubApiRepository,
   messageRepository,
   memberRepository,
@@ -42,7 +42,7 @@ export const implementDashboardService = ({
   waffleRepository: {
     listLogs: (_: { from: Date; to: Date }) => Promise<{ logs: Log[] }>;
   };
-}): DashboardService => {
+}): WeeklyWaffleStudioDashboardUsecase => {
   return {
     sendWeeklyDashboard: async (organization: string) => {
       const { members } = await memberRepository.getAllMembers();

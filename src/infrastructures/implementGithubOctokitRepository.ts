@@ -1,12 +1,11 @@
 import { Octokit } from 'octokit';
-
-import type { implementDashboardService } from '../services/DashboardService';
+import type { getWeeklyWaffleStudioDashboardUsecase } from '../usecases/WeeklyWaffleStudioDashboardUsecase';
 
 export const implementGithubOctokitRepository = ({
   githubAuthToken,
 }: {
   githubAuthToken: string;
-}): Parameters<typeof implementDashboardService>[0]['githubApiRepository'] => {
+}): Parameters<typeof getWeeklyWaffleStudioDashboardUsecase>[0]['githubApiRepository'] => {
   const octokit = new Octokit({ auth: githubAuthToken });
 
   return {

@@ -1,20 +1,16 @@
 import type { SlackEvent, WebClient } from '@slack/web-api';
 import type { TruffleClient } from '@wafflestudio/truffle-bunjs';
-import type { SlackID } from './entities/Slack';
 import { implementGitHubDeployWebhookController } from './infrastructures/implementGitHubDeployWebhookController';
 import { implementMemberWaffleDotComRepository } from './infrastructures/implementMemberWaffleDotComRepository';
 import { implementMongoAtlasWaffleRepository } from './infrastructures/implementMongoAtlasWaffleRepository';
 import { implementSlackPresenter } from './infrastructures/implementSlackPresenter';
-import { implementDeploymentService } from './services/GithubDeploymentService';
-
-import { implementWaffleService } from './services/WaffleService';
+import { getDeployWatcherUsecase } from './usecases/DeployWatcherUsecase';
 
 import type { MongoClient } from 'mongodb';
-import { z } from 'zod';
 import {
-  type WaffleGraphDashboardService,
-  implementWaffleGraphDashboardService,
-} from './services/WaffleGraphDashboardService';
+  type HeywaffleDashboardUsecase,
+  getHeywaffleDashboardUsecase,
+} from './usecases/HeywaffleDashboardUsecase';
 import { getHeywaffleUsecase } from './usecases/HeywaffleUsecase';
 import { getSlackWatcherUsecsae } from './usecases/SlackWatcherUsecase';
 
@@ -54,20 +50,12 @@ export const handle = async (
       },
     },
   });
-  const waffleService = implementWaffleService({
-    waffleRepository: implementMongoAtlasWaffleRepository(dependencies),
-    messageRepository: {
-      sendMessage: async ({ channel, text, blocks }) => {
-        await dependencies.slackClient.postMessage({ channel, text, blocks });
-      },
-    },
-  });
-  const waffleGraphDashboardService = implementWaffleGraphDashboardService({
+  const heywaffleDashboardUsecase = getHeywaffleDashboardUsecase({
     waffleRepository: implementMongoAtlasWaffleRepository(dependencies),
     memberRepository: implementMemberWaffleDotComRepository(dependencies),
   });
   const deployWebhookController = implementGitHubDeployWebhookController({
-    deploymentService: implementDeploymentService({
+    deploymentService: getDeployWatcherUsecase({
       messengerPresenter: implementSlackPresenter({
         slackClient: dependencies.slackClient,
         channelId: env.deployWatcherChannelId,
@@ -83,7 +71,7 @@ export const handle = async (
       return new Response('ok', { status: 200 });
 
     if (request.method === 'GET' && url.pathname === '/dashboard') {
-      const data = await waffleGraphDashboardService.getGraphData();
+      const data = await heywaffleDashboardUsecase.getGraphData();
       return new Response(html(data), {
         status: 200,
         headers: { 'content-type': 'text/html;charset=utf-8' },
@@ -115,36 +103,6 @@ export const handle = async (
       return new Response(null, { status: 204 });
     }
 
-    if (request.method === 'POST' && url.pathname === '/slack/slash-command') {
-      const formData = await request.formData();
-
-      const token = formData.get('token')?.toString();
-      const type = formData.get('text')?.toString();
-      const userId = formData.get('user_id')?.toString();
-      const channelId = formData.get('channel_id')?.toString();
-
-      const data = z
-        .object({
-          type: z.literal('waffle'),
-          userId: z.string(),
-          channelId: z.string(),
-        })
-        .parse({ type, userId, channelId });
-
-      if (token !== env.slackBotToken) return new Response(null, { status: 403 });
-
-      // 3초 안에 응답하지 않으면 웹훅이 다시 들어오므로 await 하지 않고 바로 응답한다
-      switch (data.type) {
-        case 'waffle':
-          waffleService.sendDashboard({
-            userId: data.userId as SlackID,
-            channelId: data.channelId,
-          });
-      }
-
-      return new Response(null, { status: 204 });
-    }
-
     if (request.method === 'POST' && url.pathname === '/github/webhook-endpoint') {
       await deployWebhookController.handle(await request.json());
       return new Response(null, { status: 200 });
@@ -165,7 +123,7 @@ export const handle = async (
   }
 };
 
-const html = (data: Awaited<ReturnType<WaffleGraphDashboardService['getGraphData']>>) => {
+const html = (data: Awaited<ReturnType<HeywaffleDashboardUsecase['getGraphData']>>) => {
   return `
 <!DOCTYPE html>
 <html lang="ko">
