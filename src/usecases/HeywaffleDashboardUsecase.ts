@@ -1,13 +1,13 @@
 import type { Log } from '../entities/Waffle';
 
-export type WaffleGraphDashboardService = {
+export type HeywaffleDashboardUsecase = {
   getGraphData: () => Promise<{
     vertexes: { id: string; count: number; title: string }[];
     edges: { from: string; to: string; count: number }[];
   }>;
 };
 
-export const implementWaffleGraphDashboardService = ({
+export const getHeywaffleDashboardUsecase = ({
   waffleRepository,
   memberRepository,
 }: {
@@ -17,7 +17,7 @@ export const implementWaffleGraphDashboardService = ({
   memberRepository: {
     getAllMembers: () => Promise<{ members: { slackUserId: string; name: string }[] }>;
   };
-}): WaffleGraphDashboardService => {
+}): HeywaffleDashboardUsecase => {
   return {
     getGraphData: async () => {
       const { logs } = await waffleRepository.listAllLogs();

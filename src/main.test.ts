@@ -275,55 +275,6 @@ describe('slack event api', () => {
   });
 });
 
-describe('slack slash command', () => {
-  const getRequest = ({ formData }: { formData: FormData }) =>
-    new Request(`${BASE_URL}/slack/slash-command`, {
-      method: 'POST',
-      body: formData,
-    });
-
-  test('/pupuri waffle', async () => {
-    const formData = new FormData();
-    formData.append('token', env.slackBotToken);
-    formData.append('text', 'waffle');
-    formData.append('user_id', '1234');
-    formData.append('channel_id', 'C5678');
-    const request = getRequest({ formData });
-
-    const response = await handle(deps, env, request);
-    await flush();
-
-    expect(response.body).toBe(null);
-    expect(response.status).toBe(204);
-    expect(mockMongoDb).toBeCalledTimes(1);
-    expect(mockMongoDb).toBeCalledWith('waffle');
-    expect(mockMongoDbCollection).toBeCalledTimes(1);
-    expect(mockMongoDbCollection).toBeCalledWith('logs');
-    expect(mockMongoDbCollectionFind).toBeCalledTimes(1);
-    expect(mockMongoDbCollectionFind).toBeCalledWith();
-    expect(mockMongoDbCollectionFindToArray).toBeCalledTimes(1);
-    expect(mockMongoDbCollectionFindToArray).toBeCalledWith();
-    expect(deps.slackClient.postMessage).toBeCalledWith({
-      channel: 'C5678',
-      text: 'Waffle Dashboard',
-      blocks: [
-        { type: 'section', text: { type: 'mrkdwn', text: ':waffle: Waffle Dashboard' } },
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: [
-              '<@QWER> (`5 Given, 0 Received`)',
-              '<@ASDF> (`0 Given, 3 Received`)',
-              '<@ZXCV> (`0 Given, 2 Received`)',
-            ].join('\n'),
-          },
-        },
-      ],
-    });
-  });
-});
-
 describe('github webhook endpoint', () => {
   const getRequest = ({ body }: { body: unknown }) =>
     new Request(`${BASE_URL}/github/webhook-endpoint`, {

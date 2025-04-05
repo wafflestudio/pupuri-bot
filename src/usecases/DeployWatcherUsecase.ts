@@ -1,7 +1,7 @@
 import type { Member } from '../entities/Member';
 import type { MessengerPresenter } from '../presenters/MessengerPresenter';
 
-export type GithubDeploymentService = {
+export type DeplyWatcherUsecase = {
   handleCreateRelease: (body: {
     authorGithubUsername: string;
     releaseNote: string;
@@ -27,13 +27,13 @@ export type GithubDeploymentService = {
 
 const identifierToSlackTs: Partial<Record<string, string>> = {};
 
-export const implementDeploymentService = ({
+export const getDeployWatcherUsecase = ({
   messengerPresenter,
   memberRepository,
 }: {
   messengerPresenter: MessengerPresenter;
   memberRepository: { getAllMembers: () => Promise<{ members: Member[] }> };
-}): GithubDeploymentService => {
+}): DeplyWatcherUsecase => {
   return {
     handleCreateRelease: async ({
       releaseNote,

@@ -3,7 +3,7 @@ import { MongoClient, ServerApiVersion } from 'mongodb';
 import { implementGithubOctokitRepository } from './infrastructures/implementGithubOctokitRepository';
 import { implementMemberWaffleDotComRepository } from './infrastructures/implementMemberWaffleDotComRepository';
 import { implementMongoAtlasWaffleRepository } from './infrastructures/implementMongoAtlasWaffleRepository';
-import { implementDashboardService } from './services/DashboardService';
+import { getWeeklyWaffleStudioDashboardUsecase } from './usecases/WeeklyWaffleStudioDashboardUsecase';
 
 const slackAuthToken = process.env.SLACK_AUTH_TOKEN;
 const githubAccessToken = process.env.GHP_ACCESS_TOKEN;
@@ -34,7 +34,7 @@ process.on('exit', () => {
 ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
  */
 
-const dashboardService = implementDashboardService({
+const usecase = getWeeklyWaffleStudioDashboardUsecase({
   githubApiRepository: implementGithubOctokitRepository({
     githubAuthToken: githubAccessToken,
   }),
@@ -59,6 +59,6 @@ const dashboardService = implementDashboardService({
   waffleRepository: implementMongoAtlasWaffleRepository({ mongoClient }),
 });
 
-dashboardService.sendWeeklyDashboard(githubOrganization).catch((error: unknown) => {
+usecase.sendWeeklyDashboard(githubOrganization).catch((error: unknown) => {
   console.error(error);
 });
