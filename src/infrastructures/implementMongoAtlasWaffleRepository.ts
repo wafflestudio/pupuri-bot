@@ -2,13 +2,13 @@ import type { MongoClient } from 'mongodb';
 import { z } from 'zod';
 import type { SlackID } from '../entities/Slack';
 import type { implementDashboardService } from '../services/DashboardService';
-import type { implementSlackEventService } from '../services/SlackEventService';
 import type { implementWaffleService } from '../services/WaffleService';
+import type { getHeywaffleUsecase } from '../usecases/HeywaffleUsecase';
 
 export const implementMongoAtlasWaffleRepository = ({
   mongoClient,
 }: { mongoClient: Pick<MongoClient, 'db'> }): Parameters<
-  typeof implementSlackEventService
+  typeof getHeywaffleUsecase
 >[0]['waffleRepository'] &
   Parameters<typeof implementDashboardService>[0]['waffleRepository'] &
   Parameters<typeof implementWaffleService>[0]['waffleRepository'] => {

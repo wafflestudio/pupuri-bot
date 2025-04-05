@@ -6,7 +6,7 @@ import { implementMemberWaffleDotComRepository } from './infrastructures/impleme
 import { implementMongoAtlasWaffleRepository } from './infrastructures/implementMongoAtlasWaffleRepository';
 import { implementSlackPresenter } from './infrastructures/implementSlackPresenter';
 import { implementDeploymentService } from './services/GithubDeploymentService';
-import { implementSlackEventService } from './services/SlackEventService';
+
 import { implementWaffleService } from './services/WaffleService';
 
 import type { MongoClient } from 'mongodb';
@@ -15,6 +15,8 @@ import {
   type WaffleGraphDashboardService,
   implementWaffleGraphDashboardService,
 } from './services/WaffleGraphDashboardService';
+import { getHeywaffleUsecase } from './usecases/HeywaffleUsecase';
+import { getSlackWatcherUsecsae } from './usecases/SlackWatcherUsecase';
 
 export const handle = async (
   dependencies: {
@@ -33,11 +35,13 @@ export const handle = async (
   },
   request: Request,
 ): Promise<Response> => {
-  const slackService = implementSlackEventService({
+  const slackWatcherUsecase = getSlackWatcherUsecsae({
     messengerPresenter: implementSlackPresenter({
       slackClient: dependencies.slackClient,
       channelId: env.slackWatcherChannelId,
     }),
+  });
+  const heywaffleUsecase = getHeywaffleUsecase({
     waffleRepository: implementMongoAtlasWaffleRepository(dependencies),
     messageRepository: {
       getPermalink: async ({ channel, ts }) =>
@@ -98,9 +102,16 @@ export const handle = async (
 
       if (body.type === 'url_verification') return new Response(body.challenge, { status: 200 });
 
-      // 3초 안에 응답하지 않으면 웹훅이 다시 들어오므로 await 하지 않고 바로 응답한다
-      slackService.handleEvent(body.event);
+      if (body.event.type === 'message') heywaffleUsecase.handleSlackMessage(body.event);
+      if (
+        body.event.type === 'channel_created' ||
+        body.event.type === 'channel_archive' ||
+        body.event.type === 'channel_unarchive' ||
+        body.event.type === 'channel_rename'
+      )
+        slackWatcherUsecase.handleEvent(body.event);
 
+      // 3초 안에 응답하지 않으면 웹훅이 다시 들어오므로 await 하지 않는다
       return new Response(null, { status: 204 });
     }
 
