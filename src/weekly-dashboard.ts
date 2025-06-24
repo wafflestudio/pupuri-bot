@@ -59,6 +59,9 @@ const usecase = getWeeklyWaffleStudioDashboardUsecase({
   waffleRepository: implementMongoAtlasWaffleRepository({ mongoClient }),
 });
 
-usecase.sendWeeklyDashboard(githubOrganization).catch((error: unknown) => {
+await usecase.sendWeeklyDashboard(githubOrganization).catch((error: unknown) => {
   console.error(error);
+  throw error;
 });
+
+process.exit(0);
