@@ -18,7 +18,7 @@ jobs:
       - name: run script
         run: |
           bun install
-          SLACK_WEEKLY_CHANNEL_ID=C08DU07UT6F \
+          SLACK_WEEKLY_CHANNEL_ID=C09CSR54RM3 \
           SLACK_AUTH_TOKEN=${{ secrets.SLACK_AUTH_TOKEN }} \
           GHP_ACCESS_TOKEN=${{ secrets.GHP_ACCESS_TOKEN }} \
           GITHUB_ORGANIZATION=wafflestudio \
