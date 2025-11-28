@@ -1,4 +1,4 @@
-FROM oven/bun:1.2.0-slim as builder
+FROM oven/bun:1.3.3-slim as builder
 
 WORKDIR /app
 
@@ -6,7 +6,7 @@ COPY . .
 RUN bun install
 RUN bun build:server
 
-FROM oven/bun:1.2.0-slim as runner
+FROM oven/bun:1.3.3-slim as runner
 
 WORKDIR /app
 
