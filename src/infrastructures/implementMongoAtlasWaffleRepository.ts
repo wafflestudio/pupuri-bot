@@ -7,9 +7,9 @@ import type { getWeeklyWaffleStudioDashboardUsecase } from '../usecases/WeeklyWa
 
 export const implementMongoAtlasWaffleRepository = ({
   mongoClient,
-}: { mongoClient: Pick<MongoClient, 'db'> }): Parameters<
-  typeof getHeywaffleUsecase
->[0]['waffleRepository'] &
+}: {
+  mongoClient: Pick<MongoClient, 'db'>;
+}): Parameters<typeof getHeywaffleUsecase>[0]['waffleRepository'] &
   Parameters<typeof getWeeklyWaffleStudioDashboardUsecase>[0]['waffleRepository'] &
   Parameters<typeof getHeywaffleDashboardUsecase>[0]['waffleRepository'] => {
   return {

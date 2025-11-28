@@ -1,15 +1,14 @@
 import type { SlackEvent, WebClient } from '@slack/web-api';
 import type { TruffleClient } from '@wafflestudio/truffle-bunjs';
+import type { MongoClient } from 'mongodb';
 import { implementGitHubDeployWebhookController } from './infrastructures/implementGitHubDeployWebhookController';
 import { implementMemberWaffleDotComRepository } from './infrastructures/implementMemberWaffleDotComRepository';
 import { implementMongoAtlasWaffleRepository } from './infrastructures/implementMongoAtlasWaffleRepository';
 import { implementSlackPresenter } from './infrastructures/implementSlackPresenter';
 import { getDeployWatcherUsecase } from './usecases/DeployWatcherUsecase';
-
-import type { MongoClient } from 'mongodb';
 import {
-  type HeywaffleDashboardUsecase,
   getHeywaffleDashboardUsecase,
+  type HeywaffleDashboardUsecase,
 } from './usecases/HeywaffleDashboardUsecase';
 import { getHeywaffleUsecase } from './usecases/HeywaffleUsecase';
 import { getSlackWatcherUsecsae } from './usecases/SlackWatcherUsecase';
