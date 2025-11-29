@@ -35,10 +35,10 @@ export const implementGitHubDeployWebhookController = ({
 
         return deploymentService.handleCreateRelease({
           authorGithubUsername: releaseBody.release.author.login,
-          tag: releaseBody.release.tag_name,
+          releaseNote: releaseBody.release.body,
           releaseUrl: releaseBody.release.html_url,
           repository: releaseBody.repository.name,
-          releaseNote: releaseBody.release.body,
+          tag: releaseBody.release.tag_name,
         });
       }
 
@@ -46,10 +46,10 @@ export const implementGitHubDeployWebhookController = ({
         const workflowRunBody = body as unknown as WorkflowRunBody;
 
         const params = {
-          workflowName: workflowRunBody.workflow_run.name,
-          tag: workflowRunBody.workflow_run.head_branch,
           repository: workflowRunBody.repository.name,
+          tag: workflowRunBody.workflow_run.head_branch,
           workflowId: workflowRunBody.workflow_run.id,
+          workflowName: workflowRunBody.workflow_run.name,
           workflowUrl: workflowRunBody.workflow_run.html_url,
         };
 

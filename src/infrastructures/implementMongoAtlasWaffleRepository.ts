@@ -16,18 +16,14 @@ export const implementMongoAtlasWaffleRepository = ({
     insert: async (records) => {
       await mongoClient.db('waffle').collection('logs').insertMany(records);
     },
-    listLogs: async ({ from, to }) => {
-      const logs = await mongoClient
-        .db('waffle')
-        .collection('logs')
-        .find({ date: { $gte: from, $lt: to } })
-        .toArray();
+    listAllLogs: async () => {
+      const logs = await mongoClient.db('waffle').collection('logs').find().toArray();
       const logSchema = z.object({
-        from: z.string(),
-        to: z.string(),
         count: z.number(),
-        href: z.string().nullable(),
         date: z.date(),
+        from: z.string(),
+        href: z.string().nullable(),
+        to: z.string(),
       });
       return {
         logs: logs
@@ -35,14 +31,18 @@ export const implementMongoAtlasWaffleRepository = ({
           .map((log) => ({ ...log, from: log.from as SlackID, to: log.to as SlackID })),
       };
     },
-    listAllLogs: async () => {
-      const logs = await mongoClient.db('waffle').collection('logs').find().toArray();
+    listLogs: async ({ from, to }) => {
+      const logs = await mongoClient
+        .db('waffle')
+        .collection('logs')
+        .find({ date: { $gte: from, $lt: to } })
+        .toArray();
       const logSchema = z.object({
-        from: z.string(),
-        to: z.string(),
         count: z.number(),
-        href: z.string().nullable(),
         date: z.date(),
+        from: z.string(),
+        href: z.string().nullable(),
+        to: z.string(),
       });
       return {
         logs: logs

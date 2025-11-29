@@ -1,15 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2024",
-    "module": "ES2022",
-    "outDir": "./dist",
-    "rootDir": ".",
-    "strict": true,
-    "noEmit": true,
-    "moduleResolution": "Bundler",
     "allowArbitraryExtensions": true,
     "esModuleInterop": true,
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "noUncheckedIndexedAccess": true,
+    "outDir": "./dist",
+    "rootDir": ".",
     "skipLibCheck": true,
-    "noUncheckedIndexedAccess": true
+    "strict": true,
+    "target": "ES2024"
   }
 }

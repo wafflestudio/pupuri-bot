@@ -9,9 +9,9 @@ type Env = Parameters<typeof handle>[1];
 const BASE_URL = 'https://pupuri-api.wafflestudio.com';
 const env: Env = {
   deployWatcherChannelId: randomUUIDv7(),
+  NODE_ENV: 'test',
   slackBotToken: randomUUIDv7(),
   slackWatcherChannelId: randomUUIDv7(),
-  NODE_ENV: 'test',
 };
 const mockChannel = 'C0101010101';
 const mockTs = randomUUIDv7();
@@ -23,8 +23,8 @@ const mockSlackGetPermalink = mock(() => {
   return Promise.resolve({ permalink: mockPermalink } as ChatGetPermalinkResponse);
 });
 const mockMongoDbCollectionFindToArray = mock(() => [
-  { from: 'QWER', to: 'ASDF', date: new Date('2025-03-25T00:01:01Z'), count: 3, href: '' },
-  { from: 'QWER', to: 'ZXCV', date: new Date('2025-03-25T00:01:02Z'), count: 2, href: '' },
+  { count: 3, date: new Date('2025-03-25T00:01:01Z'), from: 'QWER', href: '', to: 'ASDF' },
+  { count: 2, date: new Date('2025-03-25T00:01:02Z'), from: 'QWER', href: '', to: 'ZXCV' },
 ]);
 const mockMongoDbCollectionFind = mock(() => {
   return { toArray: mockMongoDbCollectionFindToArray };
@@ -41,19 +41,19 @@ const mockMongoDb = mock(() => {
 const mockTruffleCapture = mock(() => Promise.resolve());
 const mockWadotListUsers = mock(() => {
   return Promise.resolve([
-    { slack_id: 'QWER', github_id: 'qwer' },
-    { slack_id: 'ASDF', github_id: 'asdf' },
-    { slack_id: 'ZXCV', github_id: 'zxcv' },
+    { github_id: 'qwer', slack_id: 'QWER' },
+    { github_id: 'asdf', slack_id: 'ASDF' },
+    { github_id: 'zxcv', slack_id: 'ZXCV' },
   ]);
 });
 
 const flush = () => new Promise((r) => setTimeout(() => r(null), 100));
 
 const deps = {
-  slackClient: { postMessage: mockSlackPostMessage, getPermalink: mockSlackGetPermalink },
   mongoClient: { db: mockMongoDb as unknown as Deps['mongoClient']['db'] },
-  wadotClient: { listUsers: mockWadotListUsers },
+  slackClient: { getPermalink: mockSlackGetPermalink, postMessage: mockSlackPostMessage },
   truffleClient: { capture: mockTruffleCapture },
+  wadotClient: { listUsers: mockWadotListUsers },
 } as unknown as Deps;
 
 const clearMocks = () => {
@@ -89,8 +89,8 @@ describe('health check api', () => {
 describe('slack event api', () => {
   const getRequest = ({ body }: { body: unknown }) =>
     new Request(`${BASE_URL}/slack/action-endpoint`, {
-      method: 'POST',
       body: JSON.stringify(body),
+      method: 'POST',
     });
 
   test('should 403 when token is wrong', async () => {
@@ -102,7 +102,7 @@ describe('slack event api', () => {
   test('url verification', async () => {
     const challenge = randomUUIDv7();
     const request = getRequest({
-      body: { token: env.slackBotToken, challenge, type: 'url_verification' },
+      body: { challenge, token: env.slackBotToken, type: 'url_verification' },
     });
     const response = await handle(deps, env, request);
     expect(await response.text()).toBe(challenge);
@@ -111,7 +111,7 @@ describe('slack event api', () => {
 
   test('channel operations', async () => {
     const testChannel = async ({ event, text }: { event: unknown; text: string }) => {
-      const request = getRequest({ body: { token: env.slackBotToken, event } });
+      const request = getRequest({ body: { event, token: env.slackBotToken } });
       const response = await handle(deps, env, request);
       await flush();
 
@@ -125,22 +125,22 @@ describe('slack event api', () => {
       });
     };
     await testChannel({
-      event: { type: 'channel_archive', channel: mockChannel },
+      event: { channel: mockChannel, type: 'channel_archive' },
       text: `<#${mockChannel}> 채널이 보관되었어요`,
     });
     clearMocks();
     await testChannel({
-      event: { type: 'channel_created', channel: { id: mockChannel } },
+      event: { channel: { id: mockChannel }, type: 'channel_created' },
       text: `<#${mockChannel}> 채널이 생성되었어요`,
     });
     clearMocks();
     await testChannel({
-      event: { type: 'channel_rename', channel: { id: mockChannel } },
+      event: { channel: { id: mockChannel }, type: 'channel_rename' },
       text: `<#${mockChannel}> 채널 이름이 변경되었어요`,
     });
     clearMocks();
     await testChannel({
-      event: { type: 'channel_unarchive', channel: mockChannel },
+      event: { channel: mockChannel, type: 'channel_unarchive' },
       text: `<#${mockChannel}> 채널이 보관 취소되었어요`,
     });
   });
@@ -148,8 +148,8 @@ describe('slack event api', () => {
   describe('give waffle', () => {
     const getRequest = ({ body }: { body: unknown }) =>
       new Request(`${BASE_URL}/slack/action-endpoint`, {
-        method: 'POST',
         body: JSON.stringify(body),
+        method: 'POST',
       });
 
     test('ignore case', async () => {
@@ -168,7 +168,7 @@ describe('slack event api', () => {
     test('success case', async () => {
       const request = getRequest({
         body: {
-          event: { type: 'message', user: 'ZXCV', text: '<@QWER> :waffle: :waffle:' },
+          event: { text: '<@QWER> :waffle: :waffle:', type: 'message', user: 'ZXCV' },
           token: env.slackBotToken,
         },
       });
@@ -191,50 +191,50 @@ describe('slack event api', () => {
       expect(mockMongoDbCollectionInsertMany).toBeCalledTimes(1);
       expect(mockMongoDbCollectionInsertMany).toBeCalledWith([
         {
-          from: 'ZXCV',
-          to: 'QWER',
           count: 2,
-          href: mockPermalink,
           date: new Date('2025-03-29T13:37:55Z'),
+          from: 'ZXCV',
+          href: mockPermalink,
+          to: 'QWER',
         },
       ]);
       expect(mockSlackPostMessage).toBeCalledTimes(2);
       expect(mockSlackPostMessage).toHaveBeenCalledWith({
+        blocks: [
+          {
+            accessory: {
+              text: { text: 'View Message', type: 'plain_text' },
+              type: 'button',
+              url: mockPermalink,
+            },
+            text: { text: '*You Gave 2 Waffles to <@QWER> (3 left)*', type: 'mrkdwn' },
+            type: 'section',
+          },
+        ],
         channel: 'ZXCV',
         text: '*You Gave 2 Waffles to <@QWER> (3 left)*',
-        blocks: [
-          {
-            type: 'section',
-            text: { type: 'mrkdwn', text: '*You Gave 2 Waffles to <@QWER> (3 left)*' },
-            accessory: {
-              type: 'button',
-              text: { type: 'plain_text', text: 'View Message' },
-              url: mockPermalink,
-            },
-          },
-        ],
       });
       expect(mockSlackPostMessage).toHaveBeenCalledWith({
-        channel: 'QWER',
-        text: '*You Received 2 Waffles from <@ZXCV>!*',
         blocks: [
           {
-            type: 'section',
-            text: { type: 'mrkdwn', text: '*You Received 2 Waffles from <@ZXCV>!*' },
             accessory: {
+              text: { text: 'View Message', type: 'plain_text' },
               type: 'button',
-              text: { type: 'plain_text', text: 'View Message' },
               url: mockPermalink,
             },
+            text: { text: '*You Received 2 Waffles from <@ZXCV>!*', type: 'mrkdwn' },
+            type: 'section',
           },
         ],
+        channel: 'QWER',
+        text: '*You Received 2 Waffles from <@ZXCV>!*',
       });
     });
 
     test('fail case', async () => {
       const request = getRequest({
         body: {
-          event: { type: 'message', user: 'QWER', text: '<@ZXCV> :waffle: :waffle:' },
+          event: { text: '<@ZXCV> :waffle: :waffle:', type: 'message', user: 'QWER' },
           token: env.slackBotToken,
         },
       });
@@ -257,19 +257,19 @@ describe('slack event api', () => {
       expect(mockMongoDbCollectionInsertMany).toBeCalledTimes(0);
       expect(mockSlackPostMessage).toBeCalledTimes(1);
       expect(mockSlackPostMessage).toHaveBeenCalledWith({
-        channel: 'QWER',
-        text: '*You have only 0 Waffles left for today!*',
         blocks: [
           {
-            type: 'section',
-            text: { type: 'mrkdwn', text: '*You have only 0 Waffles left for today!*' },
             accessory: {
+              text: { text: 'View Message', type: 'plain_text' },
               type: 'button',
-              text: { type: 'plain_text', text: 'View Message' },
               url: mockPermalink,
             },
+            text: { text: '*You have only 0 Waffles left for today!*', type: 'mrkdwn' },
+            type: 'section',
           },
         ],
+        channel: 'QWER',
+        text: '*You have only 0 Waffles left for today!*',
       });
     });
   });
@@ -278,8 +278,8 @@ describe('slack event api', () => {
 describe('github webhook endpoint', () => {
   const getRequest = ({ body }: { body: unknown }) =>
     new Request(`${BASE_URL}/github/webhook-endpoint`, {
-      method: 'POST',
       body: JSON.stringify(body),
+      method: 'POST',
     });
 
   test('should 400 on invalid', async () => {
@@ -302,8 +302,8 @@ describe('github webhook endpoint', () => {
       release: {
         author: { login: 'qwer' },
         body: randomUUIDv7(),
-        tag_name: randomUUIDv7(),
         html_url: randomUUIDv7(),
+        tag_name: randomUUIDv7(),
       },
       repository: { name: randomUUIDv7() },
     };
@@ -326,13 +326,13 @@ describe('github webhook endpoint', () => {
 
     const workflowStartBody = {
       action: 'requested',
+      repository: { name: releaseBody.repository.name },
       workflow_run: {
         head_branch: releaseBody.release.tag_name,
+        html_url: randomUUIDv7(),
         id: randomUUIDv7(),
         name: 'deploy',
-        html_url: randomUUIDv7(),
       },
-      repository: { name: releaseBody.repository.name },
     };
     const workflowStartResult = await handle(deps, env, getRequest({ body: workflowStartBody }));
     expect(workflowStartResult.status).toBe(200);

@@ -48,8 +48,8 @@ export const getWeeklyWaffleStudioDashboardUsecase = ({
       const { members } = await memberRepository.getAllMembers();
       const aWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       const repos = await githubApiRepository.listOrganizationRepositories({
+        options: { perPage: 30, sort: 'pushed' },
         organization,
-        options: { sort: 'pushed', perPage: 30 },
       });
       const logs = await waffleRepository.listLogs({ from: aWeekAgo, to: new Date() });
       const repoWithDetails = (
@@ -57,34 +57,34 @@ export const getWeeklyWaffleStudioDashboardUsecase = ({
           repos.map(async (repo) => {
             const recentMergedPullRequests = (
               await githubApiRepository.listRepositoryPullRequests({
-                organization,
-                repository: repo.name,
                 options: {
+                  direction: 'desc',
                   perPage: 100,
                   sort: 'updated',
                   state: 'closed',
-                  direction: 'desc',
                 },
+                organization,
+                repository: repo.name,
               })
             ).filter((pr) => pr.mergedAt !== null && pr.mergedAt > aWeekAgo);
 
             const recentCreatedComments = (
               await githubApiRepository.listRepositoryComments({
-                organization,
-                repository: repo.name,
                 options: {
+                  direction: 'desc',
                   perPage: 100,
                   sort: 'created_at',
-                  direction: 'desc',
                 },
+                organization,
+                repository: repo.name,
               })
             ).filter((c) => c.createdAt > aWeekAgo);
 
             return [
               {
-                repository: repo,
-                pullRequests: recentMergedPullRequests,
                 comments: recentCreatedComments,
+                pullRequests: recentMergedPullRequests,
+                repository: repo,
               },
             ];
           }),
@@ -97,12 +97,12 @@ export const getWeeklyWaffleStudioDashboardUsecase = ({
         repoWithDetails
           .flatMap((r) => [
             ...r.pullRequests.map((p) => ({
-              type: 'pullRequest',
               memberGithubUsername: p.assigneeGithubUsername,
+              type: 'pullRequest',
             })),
             ...r.comments.map((c) => ({
-              type: 'comment',
               memberGithubUsername: c.userGithubUsername,
+              type: 'comment',
             })),
           ])
           .reduce<Record<string, { pullRequestCount: number; commentCount: number }>>(
@@ -111,12 +111,12 @@ export const getWeeklyWaffleStudioDashboardUsecase = ({
                 ? {
                     ...acc,
                     [item.memberGithubUsername]: {
-                      pullRequestCount:
-                        (acc[item.memberGithubUsername]?.pullRequestCount ?? 0) +
-                        (item.type === 'pullRequest' ? 1 : 0),
                       commentCount:
                         (acc[item.memberGithubUsername]?.commentCount ?? 0) +
                         (item.type === 'comment' ? 1 : 0),
+                      pullRequestCount:
+                        (acc[item.memberGithubUsername]?.pullRequestCount ?? 0) +
+                        (item.type === 'pullRequest' ? 1 : 0),
                     },
                   }
                 : acc,
@@ -124,10 +124,10 @@ export const getWeeklyWaffleStudioDashboardUsecase = ({
           ),
       )
         .map(([member, { pullRequestCount, commentCount }]) => ({
+          commentCount,
           member,
           pullRequestCount,
-          commentCount,
-          score: getScore({ pullRequestCount, commentCount }),
+          score: getScore({ commentCount, pullRequestCount }),
         }))
         .sort((a, b) => b.score - a.score)
         .slice(0, topLength);
@@ -136,8 +136,8 @@ export const getWeeklyWaffleStudioDashboardUsecase = ({
         .map((r) => ({
           ...r,
           score: getScore({
-            pullRequestCount: r.pullRequests.length,
             commentCount: r.comments.length,
+            pullRequestCount: r.pullRequests.length,
           }),
         }))
         .sort((a, b) => b.score - a.score)
@@ -145,7 +145,7 @@ export const getWeeklyWaffleStudioDashboardUsecase = ({
 
       const topWaffles = logs.logs
         .reduce((acc: { slackId: SlackID; gives: number; takes: number }[], cur) => {
-          const init = (slackId: SlackID) => ({ slackId, gives: 0, takes: 0 });
+          const init = (slackId: SlackID) => ({ gives: 0, slackId, takes: 0 });
           const giveData = acc.find((a) => a.slackId === cur.from) ?? init(cur.from);
           const takeData = acc.find((a) => a.slackId === cur.to) ?? init(cur.to);
 
@@ -169,20 +169,18 @@ export const getWeeklyWaffleStudioDashboardUsecase = ({
       ];
 
       await messageRepository.sendMessage({
-        text: `${Emoji.tada} 지난 주 통계 ${Emoji['blob-clap']}`,
         blocks: [
           {
-            type: 'header',
             text: {
-              type: 'plain_text',
-              text: `${Emoji.tada} 지난 주 통계 ${Emoji['blob-clap']}`,
               emoji: true,
+              text: `${Emoji.tada} 지난 주 통계 ${Emoji['blob-clap']}`,
+              type: 'plain_text',
             },
+            type: 'header',
           },
           { type: 'divider' },
-          { type: 'section', text: { type: 'mrkdwn', text: `*Contributors* ${Emoji.blobgamer}` } },
+          { text: { text: `*Contributors* ${Emoji.blobgamer}`, type: 'mrkdwn' }, type: 'section' },
           {
-            type: 'section',
             fields: guard(
               topUsers.flatMap(({ member, score, pullRequestCount, commentCount }, i) => {
                 const foundMember = members.find((m) => m.githubUsername === member);
@@ -191,21 +189,21 @@ export const getWeeklyWaffleStudioDashboardUsecase = ({
 
                 return [
                   {
-                    type: 'mrkdwn',
                     text: `${rankEmoji} ${foundMember !== undefined ? formatMemberMention(foundMember) : `@${member}`}`,
+                    type: 'mrkdwn',
                   },
                   {
-                    type: 'mrkdwn',
                     text: `*${score}p* (${pullRequestCount} PR, ${commentCount} comments)`,
+                    type: 'mrkdwn',
                   },
                 ];
               }),
             ),
+            type: 'section',
           },
           { type: 'divider' },
-          { type: 'section', text: { type: 'mrkdwn', text: `*Top Repositories* ${Emoji.github}` } },
+          { text: { text: `*Top Repositories* ${Emoji.github}`, type: 'mrkdwn' }, type: 'section' },
           {
-            type: 'section',
             fields: guard(
               topRepositories.flatMap(
                 ({ repository: { webUrl, name }, score, comments, pullRequests }, i) => {
@@ -214,25 +212,25 @@ export const getWeeklyWaffleStudioDashboardUsecase = ({
 
                   return [
                     {
-                      type: 'mrkdwn',
                       text: `${rankEmoji} ${formatLink(formatBold(name), { url: webUrl })}`,
+                      type: 'mrkdwn',
                     },
                     {
-                      type: 'mrkdwn',
                       text: `*${score}p* (${pullRequests.length} PR, ${comments.length} comments)`,
+                      type: 'mrkdwn',
                     },
                   ];
                 },
               ),
             ),
+            type: 'section',
           },
           { type: 'divider' },
           {
+            text: { text: `*Top Waffles* ${Emoji.waffle} `, type: 'mrkdwn' as const },
             type: 'section',
-            text: { type: 'mrkdwn' as const, text: `*Top Waffles* ${Emoji.waffle} ` },
           },
           {
-            type: 'section',
             fields: guard(
               topWaffles.flatMap(({ slackId, gives, takes }, i) => {
                 const foundMember = members.find((m) => m.slackUserId === slackId);
@@ -241,22 +239,24 @@ export const getWeeklyWaffleStudioDashboardUsecase = ({
 
                 return [
                   {
-                    type: 'mrkdwn',
                     text: `${rankEmoji} ${foundMember !== undefined ? formatMemberMention(foundMember) : `@${slackId}`}`,
+                    type: 'mrkdwn',
                   },
                   {
-                    type: 'mrkdwn',
                     text: `*${gives} given, ${takes} received*`,
+                    type: 'mrkdwn',
                   },
                 ];
               }),
             ),
+            type: 'section',
           },
         ],
+        text: `${Emoji.tada} 지난 주 통계 ${Emoji['blob-clap']}`,
       });
     },
   };
 };
 
 const guard = <T>(array: T[]) =>
-  array.length === 0 ? [{ type: 'mrkdwn' as const, text: '-' }] : array;
+  array.length === 0 ? [{ text: '-', type: 'mrkdwn' as const }] : array;

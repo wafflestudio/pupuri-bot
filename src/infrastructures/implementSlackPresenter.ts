@@ -28,10 +28,10 @@ const escapeSymbols = (text: string) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 const helpers: MessageHelper = {
-  formatLink: (text: string, options: { url: string }) => `<${options.url}|${escapeSymbols(text)}>`,
-  formatChannel: (channelId: string) => `<#${channelId}>`,
-  formatEmoji: (emoji: string) => `:${emoji}:`,
   formatBold: (text: string) => `*${text}*`,
-  formatMemberMention: (member) => `<@${member.slackUserId}>`,
+  formatChannel: (channelId: string) => `<#${channelId}>`,
   formatCodeBlock: (text: string) => `\`\`\`${text}\`\`\``,
+  formatEmoji: (emoji: string) => `:${emoji}:`,
+  formatLink: (text: string, options: { url: string }) => `<${options.url}|${escapeSymbols(text)}>`,
+  formatMemberMention: (member) => `<@${member.slackUserId}>`,
 };

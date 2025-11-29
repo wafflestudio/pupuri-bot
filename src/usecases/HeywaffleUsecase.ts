@@ -60,22 +60,22 @@ export const getHeywaffleUsecase = ({
 
       if (left < total) {
         await messageRepository.sendMessage({
-          channel: event.user,
-          text: `*You have only ${left} ${left === 1 ? 'Waffle' : 'Waffles'} left for today!*`,
           blocks: [
             {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: `*You have only ${left} ${left === 1 ? 'Waffle' : 'Waffles'} left for today!*`,
-              },
               accessory: {
+                text: { text: 'View Message', type: 'plain_text' },
                 type: 'button',
-                text: { type: 'plain_text', text: 'View Message' },
                 url: href,
               },
+              text: {
+                text: `*You have only ${left} ${left === 1 ? 'Waffle' : 'Waffles'} left for today!*`,
+                type: 'mrkdwn',
+              },
+              type: 'section',
             },
           ],
+          channel: event.user,
+          text: `*You have only ${left} ${left === 1 ? 'Waffle' : 'Waffles'} left for today!*`,
         });
         return;
       }
@@ -92,29 +92,29 @@ export const getHeywaffleUsecase = ({
           })),
         ].map(({ channel, text }) =>
           messageRepository.sendMessage({
-            channel,
-            text,
             blocks: [
               {
-                type: 'section',
-                text: { type: 'mrkdwn', text },
                 accessory: {
+                  text: { text: 'View Message', type: 'plain_text' },
                   type: 'button',
-                  text: { type: 'plain_text', text: 'View Message' },
                   url: href,
                 },
+                text: { text, type: 'mrkdwn' },
+                type: 'section',
               },
             ],
+            channel,
+            text,
           }),
         ),
 
         waffleRepository.insert(
           targetUsers.map((targetUser) => ({
-            from: user,
-            to: mentionToSlackID(targetUser),
             count,
-            href,
             date: new Date(),
+            from: user,
+            href,
+            to: mentionToSlackID(targetUser),
           })),
         ),
       ]);

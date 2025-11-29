@@ -32,12 +32,11 @@ export const handle = async (
 ): Promise<Response> => {
   const slackWatcherUsecase = getSlackWatcherUsecsae({
     messengerPresenter: implementSlackPresenter({
-      slackClient: dependencies.slackClient,
       channelId: env.slackWatcherChannelId,
+      slackClient: dependencies.slackClient,
     }),
   });
   const heywaffleUsecase = getHeywaffleUsecase({
-    waffleRepository: implementMongoAtlasWaffleRepository(dependencies),
     messageRepository: {
       getPermalink: async ({ channel, ts }) =>
         dependencies.slackClient.getPermalink({ channel, message_ts: ts }).then((res) => {
@@ -45,21 +44,22 @@ export const handle = async (
           return { link: res.permalink };
         }),
       sendMessage: async ({ channel, text, blocks }) => {
-        await dependencies.slackClient.postMessage({ channel, text, blocks });
+        await dependencies.slackClient.postMessage({ blocks, channel, text });
       },
     },
+    waffleRepository: implementMongoAtlasWaffleRepository(dependencies),
   });
   const heywaffleDashboardUsecase = getHeywaffleDashboardUsecase({
-    waffleRepository: implementMongoAtlasWaffleRepository(dependencies),
     memberRepository: implementMemberWaffleDotComRepository(dependencies),
+    waffleRepository: implementMongoAtlasWaffleRepository(dependencies),
   });
   const deployWebhookController = implementGitHubDeployWebhookController({
     deploymentService: getDeployWatcherUsecase({
-      messengerPresenter: implementSlackPresenter({
-        slackClient: dependencies.slackClient,
-        channelId: env.deployWatcherChannelId,
-      }),
       memberRepository: implementMemberWaffleDotComRepository(dependencies),
+      messengerPresenter: implementSlackPresenter({
+        channelId: env.deployWatcherChannelId,
+        slackClient: dependencies.slackClient,
+      }),
     }),
   });
 
@@ -72,8 +72,8 @@ export const handle = async (
     if (request.method === 'GET' && url.pathname === '/dashboard') {
       const data = await heywaffleDashboardUsecase.getGraphData();
       return new Response(html(data), {
-        status: 200,
         headers: { 'content-type': 'text/html;charset=utf-8' },
+        status: 200,
       });
     }
 
@@ -136,7 +136,7 @@ const html = (data: Awaited<ReturnType<HeywaffleDashboardUsecase['getGraphData']
       <script>
         const gData = {
           nodes: ${JSON.stringify(data.vertexes)},
-          links: ${JSON.stringify(data.edges.map((e) => ({ source: e.from, target: e.to, count: e.count })))}
+          links: ${JSON.stringify(data.edges.map((e) => ({ count: e.count, source: e.from, target: e.to })))}
         };
 
         const Graph = ForceGraph3D()

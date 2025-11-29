@@ -35,6 +35,39 @@ export const getDeployWatcherUsecase = ({
   memberRepository: { getAllMembers: () => Promise<{ members: Member[] }> };
 }): DeplyWatcherUsecase => {
   return {
+    handleActionComplete: async ({ workflowName, workflowId, workflowUrl, tag, repository }) => {
+      if (!isDeployWorkflow(workflowName)) return;
+
+      const ts = identifierToSlackTs[toIdentifier({ repository, tag })];
+      if (ts === undefined) return;
+
+      await messengerPresenter.sendMessage(({ formatEmoji, formatLink }) => ({
+        options: { ts },
+        text: [
+          `${formatEmoji('github')} ${formatEmoji('done')} workflow completed ${formatLink(`${workflowId}`, { url: workflowUrl })}`,
+        ].join('\n'),
+      }));
+
+      identifierToSlackTs[toIdentifier({ repository, tag })] = undefined;
+    },
+    handleActionStart: async ({ workflowName, workflowId, workflowUrl, tag, repository }) => {
+      if (!isDeployWorkflow(workflowName)) return;
+
+      const ts = identifierToSlackTs[toIdentifier({ repository, tag })];
+      if (ts === undefined) return;
+
+      await messengerPresenter.sendMessage(({ formatEmoji, formatLink }) => ({
+        options: { ts },
+        text: [
+          `${formatEmoji('github')} ${formatEmoji('wip')} workflow started ${formatLink(
+            `${workflowId}`,
+            {
+              url: workflowUrl,
+            },
+          )}`,
+        ].join('\n'),
+      }));
+    },
     handleCreateRelease: async ({
       releaseNote,
       authorGithubUsername,
@@ -57,48 +90,15 @@ export const getDeployWatcherUsecase = ({
         },
       );
 
-      identifierToSlackTs[toIdentifier({ tag, repository })] = ts;
+      identifierToSlackTs[toIdentifier({ repository, tag })] = ts;
 
       await messengerPresenter.sendMessage(({ formatEmoji, formatCodeBlock, formatLink }) => ({
+        options: { ts },
         text: [
           `${formatEmoji('memo')} ${formatLink('릴리즈 노트', { url: releaseUrl })}`,
           formatCodeBlock(releaseNote),
         ].join('\n\n'),
-        options: { ts },
       }));
-    },
-    handleActionStart: async ({ workflowName, workflowId, workflowUrl, tag, repository }) => {
-      if (!isDeployWorkflow(workflowName)) return;
-
-      const ts = identifierToSlackTs[toIdentifier({ tag, repository })];
-      if (ts === undefined) return;
-
-      await messengerPresenter.sendMessage(({ formatEmoji, formatLink }) => ({
-        text: [
-          `${formatEmoji('github')} ${formatEmoji('wip')} workflow started ${formatLink(
-            `${workflowId}`,
-            {
-              url: workflowUrl,
-            },
-          )}`,
-        ].join('\n'),
-        options: { ts },
-      }));
-    },
-    handleActionComplete: async ({ workflowName, workflowId, workflowUrl, tag, repository }) => {
-      if (!isDeployWorkflow(workflowName)) return;
-
-      const ts = identifierToSlackTs[toIdentifier({ tag, repository })];
-      if (ts === undefined) return;
-
-      await messengerPresenter.sendMessage(({ formatEmoji, formatLink }) => ({
-        text: [
-          `${formatEmoji('github')} ${formatEmoji('done')} workflow completed ${formatLink(`${workflowId}`, { url: workflowUrl })}`,
-        ].join('\n'),
-        options: { ts },
-      }));
-
-      identifierToSlackTs[toIdentifier({ tag, repository })] = undefined;
     },
   };
 };

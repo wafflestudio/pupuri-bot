@@ -1,22 +1,5 @@
 {
-  "name": "pupuri-bot",
-  "version": "1.0.0",
-  "description": "wafflestudio pupuri bot",
-  "main": "index.ts",
-  "repository": "https://github.com/wafflestudio/pupuri-bot",
   "author": "woohm402 <woohm404@gmail.com>",
-  "license": "MIT",
-  "type": "module",
-  "private": false,
-  "scripts": {
-    "dev:server": "NODE_ENV=development bun --watch src/server.ts",
-    "build:server": "NODE_ENV=production bun build src/server.ts --outdir dist --minify --target bun",
-    "start:server": "bun dist/server.js",
-    "deploy:server": "./scripts/deploy.sh",
-    "send:weekly-dashboard": "bun src/weekly-dashboard.ts",
-    "check": "biome check .",
-    "fix": "biome check --fix ."
-  },
   "dependencies": {
     "@slack/web-api": "7.13.0",
     "@wafflestudio/truffle-bunjs": "0.2.3",
@@ -24,11 +7,28 @@
     "octokit": "5.0.5",
     "zod": "4.1.13"
   },
+  "description": "wafflestudio pupuri bot",
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
     "@types/bun": "1.3.3",
     "knip": "5.70.2",
     "typescript": "5.9.3"
   },
-  "packageManager": "bun@1.3.3"
+  "license": "MIT",
+  "main": "index.ts",
+  "name": "pupuri-bot",
+  "packageManager": "bun@1.3.3",
+  "private": false,
+  "repository": "https://github.com/wafflestudio/pupuri-bot",
+  "scripts": {
+    "build:server": "NODE_ENV=production bun build src/server.ts --outdir dist --minify --target bun",
+    "check": "biome check .",
+    "deploy:server": "./scripts/deploy.sh",
+    "dev:server": "NODE_ENV=development bun --watch src/server.ts",
+    "fix": "biome check --fix .",
+    "send:weekly-dashboard": "bun src/weekly-dashboard.ts",
+    "start:server": "bun dist/server.js"
+  },
+  "type": "module",
+  "version": "1.0.0"
 }

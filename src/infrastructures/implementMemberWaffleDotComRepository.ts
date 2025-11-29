@@ -19,9 +19,9 @@ export const implementMemberWaffleDotComRepository = ({
 
       return {
         members: users.map((user) => ({
-          slackUserId: user.slack_id,
           githubUsername: user.github_id,
           name: user.first_name,
+          slackUserId: user.slack_id,
         })),
       };
     },
