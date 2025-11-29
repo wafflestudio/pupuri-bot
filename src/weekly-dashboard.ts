@@ -38,15 +38,6 @@ const usecase = getWeeklyWaffleStudioDashboardUsecase({
   githubApiRepository: implementGithubOctokitRepository({
     githubAuthToken: githubAccessToken,
   }),
-  messageRepository: {
-    sendMessage: async ({ blocks, text }) => {
-      await new WebClient(slackAuthToken).chat.postMessage({
-        channel: slackWeeklyChannelId,
-        blocks,
-        text,
-      });
-    },
-  },
   memberRepository: implementMemberWaffleDotComRepository({
     wadotClient: {
       listUsers: () =>
@@ -56,6 +47,15 @@ const usecase = getWeeklyWaffleStudioDashboardUsecase({
         ),
     },
   }),
+  messageRepository: {
+    sendMessage: async ({ blocks, text }) => {
+      await new WebClient(slackAuthToken).chat.postMessage({
+        blocks,
+        channel: slackWeeklyChannelId,
+        text,
+      });
+    },
+  },
   waffleRepository: implementMongoAtlasWaffleRepository({ mongoClient }),
 });
 

@@ -13,43 +13,43 @@ export const implementGithubOctokitRepository = ({
       octokit.rest.repos
         .listForOrg({
           org: organization,
-          sort: options?.sort,
           per_page: options?.perPage,
+          sort: options?.sort,
         })
         .then((res) => res.data.map((d) => ({ name: d.name, webUrl: d.html_url }))),
+
+    listRepositoryComments: ({ organization, repository, options }) =>
+      octokit.rest.pulls
+        .listReviewCommentsForRepo({
+          direction: options?.direction,
+          owner: organization,
+          per_page: options?.perPage,
+          repo: repository,
+          sort: options?.sort,
+        })
+        .then((res) =>
+          res.data.map((d) => ({
+            body: d.body,
+            createdAt: new Date(d.created_at),
+            userGithubUsername: d.user.login,
+          })),
+        ),
 
     listRepositoryPullRequests: ({ organization, repository, options }) =>
       octokit.rest.pulls
         .list({
+          direction: options?.direction,
           owner: organization,
+          per_page: options?.perPage,
           repo: repository,
           sort: options?.sort,
           state: options?.state,
-          direction: options?.direction,
-          per_page: options?.perPage,
         })
         .then((res) =>
           res.data.map((d) => ({
             ...d,
             assigneeGithubUsername: d.assignee?.login ?? d.user?.login ?? null,
             mergedAt: d.merged_at !== null ? new Date(d.merged_at) : null,
-          })),
-        ),
-
-    listRepositoryComments: ({ organization, repository, options }) =>
-      octokit.rest.pulls
-        .listReviewCommentsForRepo({
-          owner: organization,
-          repo: repository,
-          sort: options?.sort,
-          direction: options?.direction,
-          per_page: options?.perPage,
-        })
-        .then((res) =>
-          res.data.map((d) => ({
-            body: d.body,
-            userGithubUsername: d.user.login,
-            createdAt: new Date(d.created_at),
           })),
         ),
   };

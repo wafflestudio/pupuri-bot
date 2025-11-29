@@ -30,12 +30,16 @@ process.on('exit', () => {
 });
 
 Bun.serve({
-  port: PORT,
   fetch(req) {
     return handle(
       {
-        slackClient: new WebClient(slackAuthToken).chat,
         mongoClient,
+        slackClient: new WebClient(slackAuthToken).chat,
+        truffleClient: getTruffleClient({
+          apiKey: truffleApiKey,
+          app: { name: 'pupuri-bot', phase: 'prod' },
+          enabled: NODE_ENV === 'production',
+        }),
         wadotClient: {
           listUsers: () =>
             fetch('https://wadot-api.wafflestudio.com/api/v1/users').then(
@@ -45,16 +49,12 @@ Bun.serve({
                 >,
             ),
         },
-        truffleClient: getTruffleClient({
-          app: { name: 'pupuri-bot', phase: 'prod' },
-          enabled: NODE_ENV === 'production',
-          apiKey: truffleApiKey,
-        }),
       },
-      { slackBotToken, slackWatcherChannelId, deployWatcherChannelId, NODE_ENV },
+      { deployWatcherChannelId, NODE_ENV, slackBotToken, slackWatcherChannelId },
       req,
     );
   },
+  port: PORT,
 });
 
 console.info(`Listening on port ${PORT}`);

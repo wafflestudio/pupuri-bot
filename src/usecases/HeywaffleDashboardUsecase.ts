@@ -29,20 +29,20 @@ export const getHeywaffleDashboardUsecase = ({
           const foundReceiver = a.find((it) => it.user === c.to);
 
           if (foundGiver) foundGiver.given += c.count;
-          else a.push({ user: c.from, given: c.count, taken: 0 });
+          else a.push({ given: c.count, taken: 0, user: c.from });
 
           if (foundReceiver) foundReceiver.taken += c.count;
-          else a.push({ user: c.to, given: 0, taken: c.count });
+          else a.push({ given: 0, taken: c.count, user: c.to });
 
           return a;
         }, [])
         .map((d) => ({
+          count: d.given + d.taken,
           id: d.user,
           title: [
             members.find((m) => m.slackUserId === d.user)?.name ?? '-',
             `(${d.given + d.taken})`,
           ].join(' '),
-          count: d.given + d.taken,
         }));
 
       const edges = logs.reduce(
@@ -55,13 +55,13 @@ export const getHeywaffleDashboardUsecase = ({
               (a.from === cur.from && a.to === cur.to) || (a.from === cur.to && a.to === cur.from),
           );
           if (found) found.count += cur.count;
-          else acc.push({ from: cur.from, to: cur.to, count: cur.count });
+          else acc.push({ count: cur.count, from: cur.from, to: cur.to });
           return acc;
         },
         [],
       );
 
-      return { vertexes, edges };
+      return { edges, vertexes };
     },
   };
 };

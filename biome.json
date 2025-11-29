@@ -1,9 +1,27 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
-  "vcs": {
-    "enabled": true,
-    "clientKind": "git",
-    "useIgnoreFile": true
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on",
+        "useSortedKeys": "on"
+      }
+    },
+    "enabled": true
+  },
+  "files": {
+    "includes": ["**", "!**/*.js"]
+  },
+  "formatter": {
+    "formatWithErrors": true,
+    "indentStyle": "space",
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single"
+    },
+    "globals": ["Bun"]
   },
   "linter": {
     "rules": {
@@ -17,35 +35,26 @@
       "performance": {
         "noAccumulatingSpread": "off"
       },
-      "suspicious": {
-        "noConsole": {
-          "options": {
-            "allow": ["error", "debug", "info"]
-          },
-          "level": "error"
-        },
-        "noReactSpecificProps": "off"
-      },
       "style": {
-        "useNamingConvention": "off",
         "useBlockStatements": "off",
         "useDefaultSwitchClause": "off",
-        "useFilenamingConvention": "off"
+        "useFilenamingConvention": "off",
+        "useNamingConvention": "off"
+      },
+      "suspicious": {
+        "noConsole": {
+          "level": "error",
+          "options": {
+            "allow": ["error", "debug", "info"]
+          }
+        },
+        "noReactSpecificProps": "off"
       }
     }
   },
-  "files": {
-    "includes": ["**", "!**/*.js"]
-  },
-  "formatter": {
-    "indentStyle": "space",
-    "lineWidth": 100,
-    "formatWithErrors": true
-  },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "single"
-    },
-    "globals": ["Bun"]
+  "vcs": {
+    "clientKind": "git",
+    "enabled": true,
+    "useIgnoreFile": true
   }
 }
