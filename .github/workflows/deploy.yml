@@ -11,34 +11,28 @@ jobs:
     runs-on: ubuntu-24.04-arm
     env:
       IMAGE_TAG: ${{ github.run_number }}
-      BUILD_NUMBER: ${{ github.run_number }}
-      ECR_REGISTRY: 405906814034.dkr.ecr.ap-northeast-2.amazonaws.com
-      ECR_REPOSITORY: pupuri-prod/pupuri-bot
+      OCIR_REGISTRY: yny.ocir.io
+      OCIR_NAMESPACE: ax1dvc8vmenm
+      OCIR_REPOSITORY: pupuri-prod/pupuri-bot
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Login to OCIR
+        run: echo "${{ secrets.OCI_AUTH_TOKEN }}" | docker login $OCIR_REGISTRY -u $OCIR_NAMESPACE/members/waffle-deployer --password-stdin
 
-      - name: Login to ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Docker Build, tag, and push image to ECR
-        id: build-image
+      - name: Docker build, tag, and push image to OCIR
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+          docker build \
+            -f Dockerfile \
+            -t $OCIR_REGISTRY/$OCIR_NAMESPACE/$OCIR_REPOSITORY:$IMAGE_TAG \
             --build-arg SLACK_BOT_TOKEN=${{ secrets.SLACK_BOT_TOKEN }} \
             --build-arg SLACK_AUTH_TOKEN=${{ secrets.SLACK_AUTH_TOKEN }} \
             --build-arg "MONGODB_URI=${{ secrets.MONGODB_URI }}" \
             --build-arg TRUFFLE_API_KEY=${{ secrets.TRUFFLE_API_KEY }} \
             --build-arg SLACK_WATCHER_CHANNEL_ID=C050TMDUSTA \
             --build-arg DEPLOY_WATCHER_CHANNEL_ID=C06H0PJPDNH \
-            .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            . \
+            --platform linux/arm64
+          docker push $OCIR_REGISTRY/$OCIR_NAMESPACE/$OCIR_REPOSITORY:$IMAGE_TAG
