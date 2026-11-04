@@ -22,6 +22,24 @@ if (deployWatcherChannelId === undefined) throw new Error('Missing Deploy Watche
 if (mongoDBUri === undefined) throw new Error('Missing MongoDB URI');
 
 const mongoClient = new MongoClient(mongoDBUri, { serverApi: ServerApiVersion.v1 });
+const slackClient = new WebClient(slackAuthToken).chat;
+const truffleClient = getTruffleClient({
+  apiKey: truffleApiKey,
+  app: { name: 'pupuri-bot', phase: 'prod' },
+  enabled: NODE_ENV === 'production',
+});
+const dependencies = {
+  mongoClient,
+  slackClient,
+  truffleClient,
+  wadotClient: {
+    listUsers: () =>
+      fetch('https://wadot-api.wafflestudio.com/api/v1/users').then(
+        (res) =>
+          res.json() as Promise<{ github_id: string; slack_id: string; first_name: string }[]>,
+      ),
+  },
+};
 
 mongoClient.connect();
 
@@ -32,24 +50,7 @@ process.on('exit', () => {
 Bun.serve({
   fetch(req) {
     return handle(
-      {
-        mongoClient,
-        slackClient: new WebClient(slackAuthToken).chat,
-        truffleClient: getTruffleClient({
-          apiKey: truffleApiKey,
-          app: { name: 'pupuri-bot', phase: 'prod' },
-          enabled: NODE_ENV === 'production',
-        }),
-        wadotClient: {
-          listUsers: () =>
-            fetch('https://wadot-api.wafflestudio.com/api/v1/users').then(
-              (res) =>
-                res.json() as Promise<
-                  { github_id: string; slack_id: string; first_name: string }[]
-                >,
-            ),
-        },
-      },
+      dependencies,
       { deployWatcherChannelId, NODE_ENV, slackBotToken, slackWatcherChannelId },
       req,
     );
