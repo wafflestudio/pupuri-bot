@@ -59,6 +59,8 @@ bun send:weekly-dashboard
 
 ## deploy
 
-서버를 배포하려면 [releases](https://github.com/wafflestudio/pupuri-bot/releases) 에서 기존 컨벤션에 맞게 릴리즈와 태그를 생성해 주세요.
+서버는 `main` 브랜치에 머지하면 자동으로 배포됩니다. `deploy` GitHub Actions가 이미지를 OCIR에 푸시한 뒤 `waffle-world-oci/argocd/pupuri-prod/kustomization.yaml`의 이미지 태그를 갱신하고, Argo CD가 새 이미지를 동기화합니다.
+
+배포 워크플로에는 `DEPLOYER_APP_PRIVATE_KEY` 저장소 시크릿이 필요합니다. 이 키의 GitHub App은 `waffle-world-oci`에 `contents: write` 권한으로 설치되어 있어야 합니다.
 
 weekly dashboard 는 github actions 로 수행되기에, main에 머지만 되었다면 별도의 배포가 필요하진 않습니다.

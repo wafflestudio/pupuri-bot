@@ -2,13 +2,18 @@ name: deploy
 
 on:
   push:
-    tags:
-      - pupuri-*
+    branches:
+      - main
 
 jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-24.04-arm
+
+    concurrency:
+      group: deploy-pupuri-prod
+      cancel-in-progress: true
+
     env:
       IMAGE_TAG: ${{ github.run_number }}
       OCIR_REGISTRY: yny.ocir.io
@@ -18,6 +23,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Check GitOps credentials
+        env:
+          DEPLOYER_APP_PRIVATE_KEY: ${{ secrets.DEPLOYER_APP_PRIVATE_KEY }}
+        run: |
+          if [ -z "$DEPLOYER_APP_PRIVATE_KEY" ]; then
+            echo "::error::Missing DEPLOYER_APP_PRIVATE_KEY repository secret"
+            exit 1
+          fi
 
       - name: Login to OCIR
         run: echo "${{ secrets.OCI_AUTH_TOKEN }}" | docker login $OCIR_REGISTRY -u $OCIR_NAMESPACE/members/waffle-deployer --password-stdin
